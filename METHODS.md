@@ -203,26 +203,51 @@ temperature samples within judge) at the requested `α`.
 
 ---
 
-## Coverage diagnostics — **planned M4**
+## Coverage diagnostics — **M4, shipped**
 
-**File**: `src/panoptes/stats/coverage_tests.py` (stub)
+**File**: `src/panoptes/stats/coverage_tests.py`
 
-- Marginal coverage with Clopper-Pearson CI.
-- Conditional coverage per task family with Bonferroni-corrected p-values.
-- Hosmer-Lemeshow binning goodness-of-fit test.
+- **Marginal coverage** with **Clopper-Pearson** exact binomial CI
+  (Clopper & Pearson 1934). Returned at the requested `1 - α`.
+- **Conditional coverage** per group (typically `task_family`): per-group
+  Clopper-Pearson + two-sided exact binomial p-values for
+  H0: `P(cover|group) = target`, **Bonferroni-corrected** across the K
+  groups so the family-wise error rate stays ≤ α.
+- **Hosmer-Lemeshow** binning test (Hosmer & Lemeshow 1980): predictions
+  binned by score, χ² statistic accumulated from `(O - E)² / E(1-E)·n_b`
+  with df = `n_bins - 2`.
 
-**Reference**: Hosmer, Lemeshow (1980). *Goodness-of-fit tests for the multiple logistic regression model.*
+**References**:
+- Clopper, Pearson (1934). *The use of confidence or fiducial limits illustrated in the case of the binomial.* Biometrika.
+- Hosmer, Lemeshow (1980). *Goodness-of-fit tests for the multiple logistic regression model.*
+- Vovk (2012). *Conditional Validity of Inductive Conformal Predictors.*
 
 ---
 
-## Calibration metrics — **planned M4**
+## Calibration metrics — **M4, shipped**
 
-**File**: `src/panoptes/stats/reliability.py` (stub)
+**File**: `src/panoptes/stats/reliability.py`
 
-- ECE, MCE (Naeini, Cooper, Hauskrecht 2015).
-- Brier score.
-- Sharpness-vs-calibration framing (Gneiting & Raftery 2007).
-- Reliability diagram with 95% bootstrap bands (Bröcker & Smith 2007).
+- **ECE** (Expected Calibration Error): bin-weighted L1 gap between
+  in-bin confidence and accuracy. Default 15 bins per Guo et al. 2017.
+- **MCE** (Maximum Calibration Error): worst-case bin gap.
+- **Brier score**: mean squared error between probabilistic prediction
+  and `{0, 1}` label.
+- **Reliability curve** with optional 95% bootstrap bands: per-bin
+  observed accuracy across paired bootstrap resamples of
+  `(predictions, labels)`. Wider than pointwise binomial CIs because the
+  bands include bin-mean prediction variability, per Bröcker & Smith (2007).
+
+Sharpness vs calibration is the Gneiting-Raftery framing we use to
+present trade-offs in the dashboard: sharp predictions cluster near
+0/1, calibrated predictions match empirical frequencies. The two are
+optimized jointly via proper scoring rules.
+
+**References**:
+- Naeini, Cooper, Hauskrecht (2015). *Obtaining Well Calibrated Probabilities Using Bayesian Binning.* AAAI.
+- Guo, Pleiss, Sun, Weinberger (2017). *On Calibration of Modern Neural Networks.* ICML.
+- Gneiting, Raftery (2007). *Strictly Proper Scoring Rules.* JASA.
+- Bröcker, Smith (2007). *Increasing the Reliability of Reliability Diagrams.* Weather and Forecasting.
 
 ---
 

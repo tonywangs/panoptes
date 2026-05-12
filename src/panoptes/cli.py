@@ -221,6 +221,22 @@ def version() -> None:
     console.print(f"panoptes {__version__}")
 
 
+@app.command(name="report")
+def report_cmd(
+    db: Annotated[Path, typer.Option("--db", help="PANOPTES duckdb file.")],
+    out: Annotated[
+        Path, typer.Option("--out", help="Output HTML path.")
+    ] = Path("report.html"),
+) -> None:
+    """Render an offline HTML report from a duckdb file."""
+    from panoptes.reporting import write_report  # noqa: PLC0415
+
+    if not db.exists():
+        raise typer.BadParameter(f"duckdb file not found: {db}")
+    write_report(db, out)
+    console.print(f"wrote report to [bold]{out}[/bold]")
+
+
 @app.command(name="eval")
 def eval_cmd(
     benchmark: Annotated[str, typer.Argument(help="Benchmark name (M1: humaneval).")],

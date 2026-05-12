@@ -33,6 +33,16 @@ PANOPTES treats LLM evaluation as a first-class statistical inference problem ra
 - **`JuryRouter` Protocol** + four strategies: `all`, `single`, `escalation` (cheap-first, escalate on high inter-judge variance), and `bandit` (Thompson sampling on Beta(α,β) per `(judge, task_family)`, reward = info-per-dollar vs median).
 - CLI flags: `--strategy {all,single,escalation,bandit}`, `--single-judge`, `--escalation-tau`, `--bandit-top-k`, `--bandit-seed`. `--uq decomposition` triggers the aleatoric/epistemic computation.
 
+**M4 — statistics + dashboard**
+
+- `stats/coverage_tests.py` — marginal coverage with Clopper-Pearson CI, conditional-per-group with Bonferroni p-values, Hosmer-Lemeshow binning.
+- `stats/reliability.py` — ECE, MCE, Brier (Naeini et al. 2015, Guo et al. 2017), reliability diagram with 95% bootstrap bands (Bröcker & Smith 2007).
+- `stats/compare.py` — paired-bootstrap Spearman ρ / Kendall τ between judges; permutation test for "judges A and B disagree more than chance" (Pitman 1937).
+- `stats/pareto.py` — coverage-width Pareto sweep over α.
+- `stats/bootstrap.py` — pivot CI, paired-difference bootstrap, Bayesian (Dirichlet-weights) bootstrap.
+- `panoptes report --db <duckdb> --out report.html` — self-contained offline HTML with run metadata, cost-by-judge, UQ-result counts, inter-judge agreement.
+- **Streamlit dashboard** — `uv run streamlit run src/panoptes/dashboard/app.py -- --db ...`. Pages: Overview, Drill-down, Judge comparison, Conformal Pareto. Reads duckdb directly via `st.cache_data`; 1k-row design target.
+
 ## Install
 
 ```sh
@@ -82,7 +92,7 @@ uv run panoptes eval humaneval \
 | **M1** ✅ | Foundation: schemas, Anthropic client, rubric judge, split conformal, HumanEval, DuckDB, CLI, CI. |
 | **M2** ✅ | UQ breadth: OpenAI / Google / OpenAI-compat clients; adaptive (CQR) and Mondrian conformal; self-consistency; semantic entropy (Farquhar et al. 2024). |
 | **M3** ✅ | Routing: hierarchical-Gaussian jury aggregation; aleatoric/epistemic decomposition; escalation + Thompson-sampling bandit. |
-| **M4** | Statistics & dashboard: coverage diagnostics, reliability diagrams with bootstrap bands, coverage-width Pareto, Streamlit dashboard over DuckDB. |
+| **M4** ✅ | Statistics & dashboard: coverage diagnostics, reliability diagrams with bootstrap bands, coverage-width Pareto, Streamlit dashboard over DuckDB. |
 | **M5** | Remaining benchmarks (MBPP, GSM8K, TruthfulQA + BM25, MT-Bench), sandboxed Python execution, calibration probe, polish. |
 
 See `METHODS.md` for citations and math, and `CONTRIBUTING.md` for the design principles.

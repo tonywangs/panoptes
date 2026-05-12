@@ -102,6 +102,10 @@ indent-style = "space"
 
 [tool.pyright]
 include = ["src", "tests"]
+exclude = [
+    "src/panoptes/dashboard",  # Streamlit + pandas is impractical under strict
+    "src/panoptes/reporting.py",  # pandas/duckdb glue, similarly impractical
+]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 reportMissingTypeStubs = "warning"
