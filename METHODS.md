@@ -142,38 +142,60 @@ more honest at the small `n` we typically see (≤ 20 samples per item).
 
 ---
 
-## Inter-judge disagreement under a latent-ability model — **planned M3**
+## Inter-judge disagreement under a latent-ability model — **M3 (continuous shipped)**
 
-**File**: `src/panoptes/uq/disagreement.py` (stub)
+**File**: `src/panoptes/uq/disagreement.py`
 
-Two aggregators depending on score scale:
+The continuous case is the primary path for PANOPTES (rubric scores live in
+`[0, 1]`). The model is
 
-- **Continuous (`scale=continuous`)**: hierarchical Gaussian model
-  `score_ij = θ_i + bias_j + ε_ij,  ε_ij ~ N(0, σ_j²)`,
-  fit by closed-form EM. Returns posterior mean and variance of `θ_i`, plus
-  per-judge bias and precision estimates.
-- **Ordinal Likert (`scale=likert_1_5`)**: ordinal Dawid-Skene with a
-  smoothness prior on the confusion matrices.
+```
+score_ij = θ_i + b_j + ε_ij,   ε_ij ~ N(0, σ_j²),   Σ_j b_j = 0
+```
+
+fit by closed-form EM. The M-step for `σ_j²` includes the standard
+hierarchical-Gaussian correction
+
+```
+σ_j² = E[(y_ij - θ_i - b_j)² | data]
+     = (y_ij - μ_i_post - b_j)² + Var[θ_i | data]
+```
+
+without which low-noise judges have their `σ_j` underestimated. The
+`Σ_j b_j = 0` constraint resolves the obvious additive identifiability
+between θ and bias.
+
+Outputs:
+- per-item `posterior_mean`, `posterior_var` (the latent quality and its
+  uncertainty);
+- per-judge `bias`, `sigma`, `precision`.
+
+Ordinal Likert (1–5) Dawid-Skene aggregation is **planned M5**; for now,
+Likert scores are mapped onto `[0, 1]` via `(value - 1) / 4` and aggregated
+with the continuous hierarchical Gaussian.
 
 **References**:
 - Dawid, Skene (1979). *Maximum Likelihood Estimation of Observer Error-Rates Using the EM Algorithm.* JRSS-C.
 - Hovy, Berg-Kirkpatrick, Vaswani, Hovy (2013). *Learning Whom to Trust with MACE.* NAACL.
+- Bishop (2006). *Pattern Recognition and Machine Learning*, §10.
 
 ---
 
-## Aleatoric / epistemic decomposition — **planned M3**
+## Aleatoric / epistemic decomposition — **M3, shipped**
 
-**File**: `src/panoptes/uq/decomposition.py` (stub)
+**File**: `src/panoptes/uq/decomposition.py`
 
-Nested resampling:
+Law of total variance applied to the `(judge, item)` system:
 
 ```
-Var_total ≈ E_j[Var(score | judge=j)] + Var_j[E(score | judge=j)]
-            └──── aleatoric ────┘    └──── epistemic ────┘
+Var_total = E_j[Var(score | judge=j)]  +  Var_j[E(score | judge=j)]
+            └──── aleatoric ────┘         └──── epistemic ────┘
 ```
 
-Outer bootstrap over judges; inner bootstrap over temperature samples within
-judge. Returned with per-example bootstrap CIs.
+Estimator: per-judge sample mean `m_j` and within-judge variance `v_j`;
+`aleatoric = sample-weighted mean of v_j`, `epistemic = sample variance of
+{m_j}`. Bootstrap CIs by nested resampling (outer over judges, inner over
+temperature samples within judge) at the requested `α`.
 
 **References**:
 - Kendall, Gal (2017). *What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision?* NeurIPS.
@@ -204,12 +226,29 @@ judge. Returned with per-example bootstrap CIs.
 
 ---
 
-## Bandit routing — **planned M3**
+## Routing strategies — **M3, shipped**
 
-**File**: `src/panoptes/routing/bandit.py` (stub)
+**File**: `src/panoptes/routing/*`
 
-Thompson sampling over `Beta(α_jt, β_jt)` per `(judge, task_family)`; the
-"reward" for arm `j` on item `i` is `epistemic_variance_reduction(i, j) / cost_usd(j)`
-— information-per-dollar. Warm-start from M2 calibration data.
+Strategies are all routed through the `JuryRouter` Protocol, which the
+pipeline calls per item to decide which judges to invoke:
 
-**Reference**: Russo, Van Roy, Kazerouni, Osband, Wen (2018). *A Tutorial on Thompson Sampling.* arXiv:1707.02038.
+- `AllJudges` — baseline; calls every available judge.
+- `SingleJudge` — calls one judge (cheapest tier by default, or a named one).
+- `EscalationPolicy` — calls all cheap-tier judges first; if the
+  inter-judge variance exceeds `tau`, escalates to one expensive judge.
+- `ThompsonBandit` — Beta(α, β) per `(judge, task_family)`; the reward
+  signal for arm `j` on item `i` is
+
+  ```
+  reward_j = 1[ info_per_dollar(j, i) ≥ median over called judges ]
+  info_per_dollar(j, i) = max(0, var_before - var_after_excluding_j) / cost_usd(j)
+  ```
+
+  i.e. did this judge meaningfully tighten the variance per dollar relative
+  to the median called judge on this item? The state is JSON-serializable so
+  the bandit can warm-start across runs.
+
+**References**:
+- Russo, Van Roy, Kazerouni, Osband, Wen (2018). *A Tutorial on Thompson Sampling.* arXiv:1707.02038.
+- Chapelle, Li (2011). *An Empirical Evaluation of Thompson Sampling.* NeurIPS.

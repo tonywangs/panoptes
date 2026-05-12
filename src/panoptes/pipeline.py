@@ -23,10 +23,13 @@ import logging
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from typing import Literal
 
 import numpy as np
 
 from panoptes.judges.base import Judge
+from panoptes.routing.base import JudgeCatalog, JudgeMeta, JuryRouter
+from panoptes.routing.strategies import AllJudges
 from panoptes.schemas import (
     BenchmarkItem,
     ConformalResult,
@@ -34,10 +37,12 @@ from panoptes.schemas import (
     EvalRecord,
     JudgeResponse,
     JuryDecision,
+    UncertaintyDecomposition,
 )
 from panoptes.storage.duckdb_store import DuckDBStore, row_from_response
 from panoptes.storage.prompt_cache import PromptCache
 from panoptes.uq.conformal_split import SplitConformal
+from panoptes.uq.decomposition import decompose_variance
 from panoptes.uq.nli.base import NLIBackend
 from panoptes.uq.self_consistency import self_consistency_stats
 from panoptes.uq.semantic_entropy import semantic_entropy
@@ -57,6 +62,7 @@ class EvalConfig:
     skip_cached: bool = True
     n_samples: int = 0
     temperature_sampling: float = 1.0
+    strategy: Literal["all", "single", "escalation", "bandit"] = "all"
 
     @property
     def needs_sampling(self) -> bool:
@@ -79,15 +85,15 @@ class EvalConfig:
 
 @dataclass(slots=True)
 class JudgeRef:
-    """Pairs a judge with the prompt template hash it uses.
+    """Pairs a judge with the prompt template hash and routing metadata.
 
-    The pipeline groups results by `judge.judge_id`; the hash is forwarded
-    to the prompt-cache layer so we can ask "has this judge already scored
-    this item under this rubric version?".
+    `cost_tier` is read by the router to pick cheap-first / escalation
+    schedules; defaults to 'mid' which is fine for AllJudges / SingleJudge.
     """
 
     judge: Judge
     prompt_version_hash: str
+    cost_tier: Literal["cheap", "mid", "expensive"] = "mid"
 
 
 async def run_evaluation(
@@ -100,6 +106,7 @@ async def run_evaluation(
     config: EvalConfig,
     model_under_test: str,
     nli_backend: NLIBackend | None = None,
+    router: JuryRouter | None = None,
 ) -> CostReport:
     """Run point pass and (optionally) sampling pass. Returns per-judge cost.
 
@@ -116,11 +123,18 @@ async def run_evaluation(
             "n_items": len(items),
             "n_samples": config.effective_n_samples(),
             "temperature_sampling": config.temperature_sampling,
+            "strategy": config.strategy,
             "model_under_test": model_under_test,
         },
     )
     cost = _CostAccumulator()
     n_samples = config.effective_n_samples()
+    if router is None:
+        router = AllJudges()
+    catalog = JudgeCatalog(
+        judges=[JudgeMeta(judge_id=ref.judge.judge_id, cost_tier=ref.cost_tier) for ref in judges]
+    )
+    judge_by_id: dict[str, JudgeRef] = {ref.judge.judge_id: ref for ref in judges}
 
     if "semantic-entropy" in config.uq_methods and nli_backend is None:
         raise ValueError(
@@ -140,17 +154,46 @@ async def run_evaluation(
             model_response=response_text,
         )
 
-        # Point pass at temp=0.
-        point_responses = await _point_pass(item, response_text, judges, cache, config)
+        # Router: which judges to call first?
+        initial_decision = router.initial(item, catalog)
+        initial_refs = [judge_by_id[jid] for jid in initial_decision.judge_ids if jid in judge_by_id]
+        point_responses = await _point_pass(item, response_text, initial_refs, cache, config)
         for jr in point_responses:
             record.judge_responses.append(jr)
             cost.add(jr)
 
-        # Sampling pass for sampling-based UQ methods.
+        # Router: any escalation after seeing the initial responses?
+        escalation_decision = router.escalate(item, catalog, point_responses)
+        if escalation_decision.judge_ids:
+            log.debug("escalation: %s", escalation_decision.reason)
+            escalation_refs = [
+                judge_by_id[jid]
+                for jid in escalation_decision.judge_ids
+                if jid in judge_by_id
+            ]
+            extra = await _point_pass(item, response_text, escalation_refs, cache, config)
+            for jr in extra:
+                record.judge_responses.append(jr)
+                cost.add(jr)
+                point_responses.append(jr)
+
+        # Sampling pass for sampling-based UQ methods. Uses the same set
+        # of judges as the (post-escalation) point pass.
+        sampling_refs = [judge_by_id[r.judge_id] for r in point_responses if r.judge_id in judge_by_id]
+        # Deduplicate while preserving order (a judge may appear once in
+        # initial and once in escalation).
+        seen: set[str] = set()
+        deduped_sampling_refs: list[JudgeRef] = []
+        for ref in sampling_refs:
+            if ref.judge.judge_id in seen:
+                continue
+            seen.add(ref.judge.judge_id)
+            deduped_sampling_refs.append(ref)
+
         samples_by_judge: dict[str, list[JudgeResponse]] = {}
-        if n_samples > 0:
+        if n_samples > 0 and deduped_sampling_refs:
             samples_by_judge = await _sampling_pass(
-                item, response_text, judges, config, n_samples
+                item, response_text, deduped_sampling_refs, config, n_samples
             )
             for jr_list in samples_by_judge.values():
                 for jr in jr_list:
@@ -159,14 +202,49 @@ async def run_evaluation(
             for jr_list in samples_by_judge.values():
                 store.write_rows(row_from_response(record, jr) for jr in jr_list)
 
-        # Aggregation + conformal (M1 path; M3 replaces with hierarchical Gaussian).
+        # Aggregation + conformal.
         if record.judge_responses:
-            decision = _aggregate_point(record.judge_responses)
+            decision = _aggregate_point(record.judge_responses, strategy=config.strategy)
             if "split" in config.uq_methods:
                 conformal = _fit_split_for_decision(record.judge_responses, alpha=config.alpha)
                 if conformal is not None:
                     decision.conformal.append(conformal)
+            # Aleatoric/epistemic decomposition when sampling pass produced
+            # ≥2 judges with ≥2 samples each.
+            if "decomposition" in config.uq_methods and samples_by_judge:
+                arrays = {
+                    judge_id: np.asarray([s.score.value for s in sample_list], dtype=np.float64)
+                    for judge_id, sample_list in samples_by_judge.items()
+                    if len(sample_list) >= 2
+                }
+                if len(arrays) >= 2:
+                    decomp = decompose_variance(arrays, alpha=config.alpha)
+                    decision.decomposition = UncertaintyDecomposition(
+                        total=decomp.total,
+                        aleatoric=decomp.aleatoric,
+                        epistemic=decomp.epistemic,
+                        n_judges=decomp.n_judges,
+                        n_samples_per_judge=decomp.n_samples_per_judge[0],
+                    )
+                    store.write_uq_result(
+                        run_id=config.run_id,
+                        item_id=item.item_id,
+                        judge_id="__aggregate__",
+                        method="decomposition",
+                        value={
+                            "total": decomp.total,
+                            "aleatoric": decomp.aleatoric,
+                            "epistemic": decomp.epistemic,
+                            "aleatoric_ci": [decomp.aleatoric_ci_low, decomp.aleatoric_ci_high],
+                            "epistemic_ci": [decomp.epistemic_ci_low, decomp.epistemic_ci_high],
+                            "n_judges": decomp.n_judges,
+                            "n_samples_per_judge": list(decomp.n_samples_per_judge),
+                        },
+                    )
             record.jury_decision = decision
+
+        # Router online update after seeing the full set of responses.
+        router.update(item, catalog, point_responses)
 
         # Sampling-based UQ metrics, written to judge_uq_results.
         if samples_by_judge and "self-consistency" in config.uq_methods:
@@ -288,8 +366,15 @@ async def _sampling_pass(
     return by_judge
 
 
-def _aggregate_point(responses: list[JudgeResponse]) -> JuryDecision:
-    """Simple mean aggregator for M1. Replaced in M3 by hierarchical Gaussian."""
+def _aggregate_point(
+    responses: list[JudgeResponse],
+    *,
+    strategy: Literal["all", "single", "escalation", "bandit"] = "all",
+) -> JuryDecision:
+    """Mean aggregator. M3 replaces this with the hierarchical Gaussian for runs
+    with ≥ 2 judges, but the mean is correct for single-judge / single-call
+    routing and is a sensible fallback when EM would be ill-conditioned.
+    """
     values = np.asarray([r.score.value for r in responses], dtype=np.float64)
     mean = float(values.mean())
     var = float(values.var(ddof=1)) if len(values) > 1 else 0.0
@@ -299,7 +384,7 @@ def _aggregate_point(responses: list[JudgeResponse]) -> JuryDecision:
         posterior_var=var,
         judges_called=[r.judge_id for r in responses],
         cost_usd=sum(r.cost_usd for r in responses),
-        strategy="all",
+        strategy=strategy,
     )
 
 

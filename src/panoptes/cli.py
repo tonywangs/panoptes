@@ -17,7 +17,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 import typer
 from rich.console import Console
@@ -37,6 +37,9 @@ from panoptes.errors import ConfigError
 from panoptes.judges.base import load_prompt_template
 from panoptes.judges.rubric import RubricJudge
 from panoptes.pipeline import EvalConfig, JudgeRef, new_run_id, run_evaluation
+from panoptes.routing.bandit import ThompsonBandit
+from panoptes.routing.base import JuryRouter
+from panoptes.routing.strategies import AllJudges, EscalationPolicy, SingleJudge
 from panoptes.schemas import BenchmarkItem, CostReport
 from panoptes.storage.duckdb_store import DuckDBStore
 from panoptes.storage.prompt_cache import PromptCache
@@ -64,27 +67,49 @@ class _JudgeAlias:
     model: str
     prompt_rel: str
     env_var: str
+    cost_tier: str = "mid"  # "cheap" | "mid" | "expensive" — read by the router
 
 
 _JUDGE_ALIASES: dict[str, _JudgeAlias] = {
     # Anthropic
-    "claude": _JudgeAlias("anthropic", "claude-sonnet-4-6", "prompts/rubric_code_v1.md", "ANTHROPIC_API_KEY"),
-    "claude-haiku": _JudgeAlias("anthropic", "claude-haiku-4-5", "prompts/rubric_code_v1.md", "ANTHROPIC_API_KEY"),
-    "claude-opus": _JudgeAlias("anthropic", "claude-opus-4-7", "prompts/rubric_code_v1.md", "ANTHROPIC_API_KEY"),
+    "claude": _JudgeAlias(
+        "anthropic", "claude-sonnet-4-6", "prompts/rubric_code_v1.md", "ANTHROPIC_API_KEY", "mid"
+    ),
+    "claude-haiku": _JudgeAlias(
+        "anthropic", "claude-haiku-4-5", "prompts/rubric_code_v1.md", "ANTHROPIC_API_KEY", "cheap"
+    ),
+    "claude-opus": _JudgeAlias(
+        "anthropic",
+        "claude-opus-4-7",
+        "prompts/rubric_code_v1.md",
+        "ANTHROPIC_API_KEY",
+        "expensive",
+    ),
     # OpenAI
-    "gpt": _JudgeAlias("openai", "gpt-4o", "prompts/rubric_code_v1.md", "OPENAI_API_KEY"),
-    "gpt-mini": _JudgeAlias("openai", "gpt-4o-mini", "prompts/rubric_code_v1.md", "OPENAI_API_KEY"),
+    "gpt": _JudgeAlias(
+        "openai", "gpt-4o", "prompts/rubric_code_v1.md", "OPENAI_API_KEY", "mid"
+    ),
+    "gpt-mini": _JudgeAlias(
+        "openai", "gpt-4o-mini", "prompts/rubric_code_v1.md", "OPENAI_API_KEY", "cheap"
+    ),
     # Google
-    "gemini": _JudgeAlias("google", "gemini-2.5-pro", "prompts/rubric_code_v1.md", "GOOGLE_API_KEY"),
+    "gemini": _JudgeAlias(
+        "google", "gemini-2.5-pro", "prompts/rubric_code_v1.md", "GOOGLE_API_KEY", "mid"
+    ),
     # OpenAI-compat
     "together-llama": _JudgeAlias(
         "together",
         "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
         "prompts/rubric_code_v1.md",
         "TOGETHER_API_KEY",
+        "mid",
     ),
     "groq-llama": _JudgeAlias(
-        "groq", "llama-3.1-70b-versatile", "prompts/rubric_code_v1.md", "GROQ_API_KEY"
+        "groq",
+        "llama-3.1-70b-versatile",
+        "prompts/rubric_code_v1.md",
+        "GROQ_API_KEY",
+        "cheap",
     ),
 }
 
@@ -177,7 +202,12 @@ def _resolve_judge(alias: str, *, mock: bool, project_root: Path) -> JudgeRef:
     client = _build_client(spec, mock=mock, settings=settings)
     variant = template_path.stem  # e.g. 'rubric_code_v1'
     judge = RubricJudge(client=client, template=template, variant=variant)
-    return JudgeRef(judge=judge, prompt_version_hash=template.content_hash)
+    tier = spec.cost_tier if spec.cost_tier in {"cheap", "mid", "expensive"} else "mid"
+    return JudgeRef(
+        judge=judge,
+        prompt_version_hash=template.content_hash,
+        cost_tier=tier,  # type: ignore[arg-type]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -245,6 +275,38 @@ def eval_cmd(
             help="When --nli=llm, judge alias used to classify entailment.",
         ),
     ] = "claude-haiku",
+    strategy: Annotated[
+        str,
+        typer.Option(
+            "--strategy",
+            help="Router strategy: 'all' (default), 'single', 'escalation', or 'bandit'.",
+        ),
+    ] = "all",
+    single_judge: Annotated[
+        str | None,
+        typer.Option(
+            "--single-judge",
+            help="Judge alias for --strategy=single (else: cheapest tier in the judge list).",
+        ),
+    ] = None,
+    escalation_tau: Annotated[
+        float,
+        typer.Option(
+            "--escalation-tau",
+            help="Inter-judge variance threshold above which --strategy=escalation calls an expensive judge.",
+        ),
+    ] = 0.02,
+    bandit_top_k: Annotated[
+        int,
+        typer.Option(
+            "--bandit-top-k",
+            help="Number of judges to Thompson-sample per item under --strategy=bandit.",
+        ),
+    ] = 2,
+    bandit_seed: Annotated[
+        int,
+        typer.Option("--bandit-seed", help="Seed for the Thompson-sampling RNG."),
+    ] = 0,
     model_under_test: Annotated[
         str,
         typer.Option(
@@ -269,12 +331,26 @@ def eval_cmd(
         _resolve_judge(j.strip(), mock=mock, project_root=project_root) for j in judges.split(",")
     ]
     uq_methods = tuple(m.strip() for m in uq.split(",") if m.strip())
+    if strategy not in {"all", "single", "escalation", "bandit"}:
+        raise typer.BadParameter(
+            f"--strategy={strategy!r} not in 'all'/'single'/'escalation'/'bandit'."
+        )
+    strat: Literal["all", "single", "escalation", "bandit"] = strategy  # type: ignore[assignment]
     config = EvalConfig(
         run_id=new_run_id(),
         alpha=alpha,
         uq_methods=uq_methods,
         n_samples=n_samples,
         temperature_sampling=temperature_sampling,
+        strategy=strat,
+    )
+    router = _build_router(
+        strategy=strat,
+        single_judge=single_judge,
+        escalation_tau=escalation_tau,
+        bandit_top_k=bandit_top_k,
+        bandit_seed=bandit_seed,
+        judge_refs=judge_refs,
     )
     nli_backend = _resolve_nli_backend(
         nli, nli_judge=nli_judge, mock=mock, project_root=project_root, config=config
@@ -292,6 +368,7 @@ def eval_cmd(
                 config=config,
                 model_under_test=model_under_test,
                 nli_backend=nli_backend,
+                router=router,
             )
         )
         _print_summary(
@@ -343,6 +420,40 @@ def _build_responses(benchmark: str, items: list[BenchmarkItem]) -> dict[str, st
             # Prepend the function signature so the response is self-contained.
             responses[item.item_id] = item.prompt + canonical
     return responses
+
+
+def _build_router(
+    *,
+    strategy: Literal["all", "single", "escalation", "bandit"],
+    single_judge: str | None,
+    escalation_tau: float,
+    bandit_top_k: int,
+    bandit_seed: int,
+    judge_refs: list[JudgeRef],
+) -> JuryRouter:
+    """Instantiate the routing strategy from CLI flags."""
+    if strategy == "all":
+        return AllJudges()
+    if strategy == "single":
+        if single_judge is not None:
+            valid = {ref.judge.judge_id for ref in judge_refs}
+            # Match either the bare alias or the full provider:model:variant id.
+            chosen = single_judge
+            if chosen not in valid:
+                matches = [jid for jid in valid if jid.endswith(f":{chosen}") or chosen in jid]
+                if len(matches) == 1:
+                    chosen = matches[0]
+                else:
+                    raise typer.BadParameter(
+                        f"--single-judge={single_judge!r} did not match any of {sorted(valid)}"
+                    )
+            return SingleJudge(judge_id=chosen)
+        return SingleJudge()
+    if strategy == "escalation":
+        return EscalationPolicy(tau=escalation_tau)
+    if strategy == "bandit":
+        return ThompsonBandit(top_k=bandit_top_k, seed=bandit_seed)
+    raise typer.BadParameter(f"Unknown strategy '{strategy}'")
 
 
 def _resolve_nli_backend(

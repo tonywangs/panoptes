@@ -26,6 +26,13 @@ PANOPTES treats LLM evaluation as a first-class statistical inference problem ra
 - Pipeline sampling pass (temperature > 0, `n_samples > 0`) wired through duckdb's new `judge_uq_results` table.
 - Rubric templates for code, math, factuality, and free-form quality.
 
+**M3 — routing + aggregation + decomposition**
+
+- **Hierarchical-Gaussian jury aggregator** for continuous scores — closed-form EM for `score_ij = θ_i + b_j + ε_ij`, recovers per-item posteriors and per-judge bias/precision with the standard hierarchical M-step correction for σ.
+- **Aleatoric/epistemic variance decomposition** (Kendall & Gal 2017; Depeweg et al. 2018) via nested bootstrap — outer over judges (epistemic), inner over temperature samples (aleatoric).
+- **`JuryRouter` Protocol** + four strategies: `all`, `single`, `escalation` (cheap-first, escalate on high inter-judge variance), and `bandit` (Thompson sampling on Beta(α,β) per `(judge, task_family)`, reward = info-per-dollar vs median).
+- CLI flags: `--strategy {all,single,escalation,bandit}`, `--single-judge`, `--escalation-tau`, `--bandit-top-k`, `--bandit-seed`. `--uq decomposition` triggers the aleatoric/epistemic computation.
+
 ## Install
 
 ```sh
@@ -74,7 +81,7 @@ uv run panoptes eval humaneval \
 |---|---|
 | **M1** ✅ | Foundation: schemas, Anthropic client, rubric judge, split conformal, HumanEval, DuckDB, CLI, CI. |
 | **M2** ✅ | UQ breadth: OpenAI / Google / OpenAI-compat clients; adaptive (CQR) and Mondrian conformal; self-consistency; semantic entropy (Farquhar et al. 2024). |
-| **M3** | Routing: hierarchical-Gaussian jury aggregation; aleatoric/epistemic decomposition; escalation + Thompson-sampling bandit. |
+| **M3** ✅ | Routing: hierarchical-Gaussian jury aggregation; aleatoric/epistemic decomposition; escalation + Thompson-sampling bandit. |
 | **M4** | Statistics & dashboard: coverage diagnostics, reliability diagrams with bootstrap bands, coverage-width Pareto, Streamlit dashboard over DuckDB. |
 | **M5** | Remaining benchmarks (MBPP, GSM8K, TruthfulQA + BM25, MT-Bench), sandboxed Python execution, calibration probe, polish. |
 
