@@ -26,8 +26,8 @@ jobs:
       - name: Pin Python
         run: uv python install 3.12
 
-      - name: Sync dependencies (dev only)
-        run: uv sync --extra dev
+      - name: Sync dependencies (dev + bench for sklearn)
+        run: uv sync --extra dev --extra bench
 
       - name: Ruff (lint)
         run: uv run ruff check .
@@ -38,5 +38,8 @@ jobs:
       - name: Pyright (strict)
         run: uv run pyright
 
-      - name: Pytest (mocked only, no real providers)
-        run: uv run pytest -q -m "not slow and not real_provider" --cov=panoptes --cov-report=term-missing
+      - name: Pytest with coverage gate (≥80% on uq/ + stats/)
+        run: |
+          uv run pytest -q -m "not slow and not real_provider" \
+            --cov=panoptes.uq --cov=panoptes.stats \
+            --cov-report=term-missing --cov-fail-under=80

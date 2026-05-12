@@ -4,7 +4,7 @@
 
 PANOPTES treats LLM evaluation as a first-class statistical inference problem rather than a "score-and-stop" exercise. For every `(task, response, judge)` tuple, the framework asks: what is the posterior distribution over the true quality, and what fraction of that uncertainty is reducible (epistemic) vs irreducible (aleatoric)? That decomposition tells you whether to trust the score, sample more judges, escalate to a stronger one, or accept the response is genuinely ambiguous.
 
-> Status: **M1 (foundation) shipped.** Full v1.0 roadmap below; numbers under "Results" are deliberately empty until measured.
+> Status: **v1.0 milestones M1–M5 shipped.** Full roadmap below; benchmark numbers under "Results" are deliberately empty until measured on a real run.
 
 ## What's shipped (M1 + M2)
 
@@ -42,6 +42,15 @@ PANOPTES treats LLM evaluation as a first-class statistical inference problem ra
 - `stats/bootstrap.py` — pivot CI, paired-difference bootstrap, Bayesian (Dirichlet-weights) bootstrap.
 - `panoptes report --db <duckdb> --out report.html` — self-contained offline HTML with run metadata, cost-by-judge, UQ-result counts, inter-judge agreement.
 - **Streamlit dashboard** — `uv run streamlit run src/panoptes/dashboard/app.py -- --db ...`. Pages: Overview, Drill-down, Judge comparison, Conformal Pareto. Reads duckdb directly via `st.cache_data`; 1k-row design target.
+
+**M5 — benchmarks + sandbox + polish**
+
+- Benchmark loaders: **MBPP**, **GSM8K** (with parsed `#### N` final answer), **MT-Bench**, **TruthfulQA** (parquet from HF). All cached via `http_fetch_cached`.
+- `sandbox/python_exec.py` — subprocess Python sandbox with `resource.setrlimit` CPU+memory caps and hard wall timeout. `humaneval_check(prompt, candidate, test, entry_point)` convenience for HumanEval grading.
+- **Calibration probe** — `benchmarks/calibration_probe.py` mechanically obfuscates HumanEval problems by renaming entry-point functions and rewriting tests so judges can't recall the canonical solution by name. Graded via the sandbox for an after-pretraining boolean label per item.
+- `examples/custom_judge.py` + `examples/custom_provider.py` — single-file walkthroughs of the M5 acceptance criterion: new judge or provider in one Protocol class, no other code changes.
+- Nightly real-provider CI (`.github/workflows/nightly.yml`) gated on secrets.
+- CI coverage gate `--cov-fail-under=80` on `panoptes.uq` + `panoptes.stats`.
 
 ## Install
 
@@ -93,7 +102,7 @@ uv run panoptes eval humaneval \
 | **M2** ✅ | UQ breadth: OpenAI / Google / OpenAI-compat clients; adaptive (CQR) and Mondrian conformal; self-consistency; semantic entropy (Farquhar et al. 2024). |
 | **M3** ✅ | Routing: hierarchical-Gaussian jury aggregation; aleatoric/epistemic decomposition; escalation + Thompson-sampling bandit. |
 | **M4** ✅ | Statistics & dashboard: coverage diagnostics, reliability diagrams with bootstrap bands, coverage-width Pareto, Streamlit dashboard over DuckDB. |
-| **M5** | Remaining benchmarks (MBPP, GSM8K, TruthfulQA + BM25, MT-Bench), sandboxed Python execution, calibration probe, polish. |
+| **M5** ✅ | Remaining benchmarks (MBPP, GSM8K, TruthfulQA + BM25, MT-Bench), sandboxed Python execution, calibration probe, polish. |
 
 See `METHODS.md` for citations and math, and `CONTRIBUTING.md` for the design principles.
 
