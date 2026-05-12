@@ -11,18 +11,17 @@
 7. **Cache-aware costs.** Anthropic prompt-cache markers on rubric/system content. Cost reports break down `cache_read` / `cache_write` / fresh tokens.
 8. **No emojis** in code, logs, or commits.
 9. **No invented numbers** in README. Unmeasured results are `TODO: measure`.
-10. **No npm / no Node.** Stack is Python-only (uv-managed). The dashboard is Streamlit; no JS toolchain anywhere.
 
 ## Adding a provider
 
 The pipeline only talks to `panoptes.clients.base.LLMClient`. To add a new provider:
 
-1. Write a class implementing the `LLMClient` Protocol. See `src/panoptes/clients/anthropic.py` as a reference.
+1. Write a class implementing the `LLMClient` Protocol. See `src/panoptes/clients/anthropic.py` as a reference and `examples/custom_provider.py` for a single-file walkthrough.
 2. Map provider-specific error shapes onto `RetriableError` / `TerminalError` from `panoptes.errors`.
 3. Register the model's pricing via `panoptes.clients.base.register_pricing(model, ModelPricing(...))`.
 4. Add a judge alias in `cli.py`'s `_JUDGE_ALIASES` so the CLI can resolve it.
 
-No other code changes required. The example in `examples/custom_provider.py` (lands in M5) walks through the full path.
+No other code changes required.
 
 ## Adding a UQ method
 
@@ -43,11 +42,11 @@ Implement a loader in `src/panoptes/benchmarks/` that:
 ## Development workflow
 
 ```sh
-uv sync --extra dev
+uv sync --extra dev --extra bench
 uv run ruff check .
 uv run ruff format --check .
 uv run pyright
 uv run pytest -q
 ```
 
-The CI mirrors this exactly. The nightly job (M5) additionally exercises real providers via `pytest -m real_provider`.
+The CI mirrors this exactly. The nightly job additionally exercises real providers via `pytest -m real_provider`.

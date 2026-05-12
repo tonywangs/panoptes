@@ -33,8 +33,8 @@ def model_to_tool_spec(
     """
     schema = model.model_json_schema()
     # Anthropic rejects schemas with $defs at the top level for tool inputs;
-    # Pydantic only emits $defs when there are nested models. For M1 the rubric
-    # model is flat, but we strip defensively in case a future judge nests.
+    # Pydantic only emits $defs when there are nested models. The shipping
+    # rubric model is flat, but we strip defensively in case a future judge nests.
     schema.pop("$defs", None)
     schema.pop("definitions", None)
     return ToolSpec(name=name, description=description, input_schema=schema)

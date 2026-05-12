@@ -5,9 +5,10 @@ Code*) is a 164-problem Python coding benchmark distributed by OpenAI as a
 gzipped JSONL. Each problem has a function signature + docstring (`prompt`),
 a reference (`canonical_solution`), and a unit-test block (`test`).
 
-For M1 we treat each problem as a `BenchmarkItem` with `task_family=CODE`.
-The reference solution lives in `metadata['canonical_solution']`; the test
-block lives in `metadata['test']` for downstream sandboxed execution (M5).
+Each problem becomes a `BenchmarkItem` with `task_family=CODE`. The
+reference solution lives in `metadata['canonical_solution']`; the test
+block lives in `metadata['test']` for downstream sandboxed execution
+(see `panoptes.sandbox.python_exec`).
 """
 
 from __future__ import annotations

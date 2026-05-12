@@ -1,4 +1,4 @@
-"""Unit tests for the M5 benchmark loaders + calibration probe.
+"""Unit tests for the benchmark loaders + calibration probe.
 
 Avoids live HTTP — we point each loader at a `file://` URL or a
 respx-mocked URL. The loaders' core logic is parsing, not networking.

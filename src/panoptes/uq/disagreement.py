@@ -33,9 +33,10 @@ restricted-likelihood (REML) fit. We use plain ML / EM since priors are
 not required for PANOPTES's use case and REML adds complexity without
 material benefit at the small `(I, J)` we operate on.
 
-For ordinal-categorical labels (e.g. 1–5 Likert), PANOPTES will ship a
-Dawid-Skene ordinal aggregator in M5; the M3 release covers the continuous
-case which is what `RubricScore.value` is.
+For ordinal-categorical labels (e.g. 1–5 Likert), PANOPTES currently maps
+the rubric value onto `[0, 1]` via `(likert - 1) / 4` and aggregates with
+the same continuous hierarchical Gaussian. A dedicated ordinal Dawid-Skene
+aggregator is a planned follow-up.
 
 References
 ----------

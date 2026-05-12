@@ -21,9 +21,9 @@ The bandit *selects* by Thompson sampling: at item i, draw
 `θ_j ~ Beta(α_j, β_j)` for each judge, then pick the top-K judges by
 sampled `θ_j` (subject to a cost budget, if provided).
 
-This is intentionally a *baseline* bandit — the spec calls for "the bandit
-beats all-judges by ≥ 30% on cost-per-correctly-flagged-uncertain", and M3
-ships the wiring. M5 measures the gap against the calibration probe.
+This is intentionally a *baseline* bandit; the cost-vs-quality gap
+against the all-judges strategy is measured against the calibration
+probe (see `benchmarks/calibration_probe.py`).
 
 Reference
 ---------

@@ -1,6 +1,6 @@
 """Single-call rubric judge: take a (task, response) pair, return a RubricScore.
 
-This is the workhorse judge for M1. It:
+This is PANOPTES's workhorse judge. It:
     1. Loads a versioned prompt template.
     2. Sends `[system, user]` to the underlying `LLMClient` with the
        `record_score` tool forced via `ToolChoice(type='tool', name=...)`.

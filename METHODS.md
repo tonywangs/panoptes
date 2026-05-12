@@ -1,13 +1,10 @@
 # Methods
 
-Per-method math and citations for PANOPTES. This document tracks what is
-*implemented* (status flag) and what is *planned* for later milestones. Each
-section gives the underlying assumption, the estimator, and the implementation
-location.
+Per-method math and citations for PANOPTES. Each section gives the underlying assumption, the estimator, and the implementation location.
 
 ---
 
-## Split conformal prediction — **M1, shipped**
+## Split conformal prediction
 
 **File**: `src/panoptes/uq/conformal_split.py`
 
@@ -54,7 +51,7 @@ target coverage and we return `+∞` rather than silently undercovering.
 
 ---
 
-## Adaptive / locally-weighted conformal (CQR) — **M2, shipped**
+## Adaptive / locally-weighted conformal (CQR)
 
 **File**: `src/panoptes/uq/conformal_adaptive.py`
 
@@ -75,7 +72,7 @@ ones, while the marginal coverage `1 - α` guarantee is preserved.
 
 ---
 
-## Mondrian / group-conditional conformal — **M2, shipped**
+## Mondrian / group-conditional conformal
 
 **File**: `src/panoptes/uq/conformal_mondrian.py`
 
@@ -94,7 +91,7 @@ at the cost of smaller per-group calibration sets. Groups below
 
 ---
 
-## Semantic entropy — **M2, shipped**
+## Semantic entropy
 
 **File**: `src/panoptes/uq/semantic_entropy.py`
 
@@ -119,7 +116,7 @@ exposed by the provider. Bidirectional NLI backends:
 
 ---
 
-## Self-consistency variance — **M2, shipped**
+## Self-consistency variance
 
 **File**: `src/panoptes/uq/self_consistency.py`
 
@@ -142,7 +139,7 @@ more honest at the small `n` we typically see (≤ 20 samples per item).
 
 ---
 
-## Inter-judge disagreement under a latent-ability model — **M3 (continuous shipped)**
+## Inter-judge disagreement under a latent-ability model
 
 **File**: `src/panoptes/uq/disagreement.py`
 
@@ -170,9 +167,9 @@ Outputs:
   uncertainty);
 - per-judge `bias`, `sigma`, `precision`.
 
-Ordinal Likert (1–5) Dawid-Skene aggregation is **planned M5**; for now,
-Likert scores are mapped onto `[0, 1]` via `(value - 1) / 4` and aggregated
-with the continuous hierarchical Gaussian.
+For ordinal Likert (1–5) rubrics, scores are mapped onto `[0, 1]` via
+`(value - 1) / 4` and aggregated with the same continuous hierarchical
+Gaussian.
 
 **References**:
 - Dawid, Skene (1979). *Maximum Likelihood Estimation of Observer Error-Rates Using the EM Algorithm.* JRSS-C.
@@ -181,7 +178,7 @@ with the continuous hierarchical Gaussian.
 
 ---
 
-## Aleatoric / epistemic decomposition — **M3, shipped**
+## Aleatoric / epistemic decomposition
 
 **File**: `src/panoptes/uq/decomposition.py`
 
@@ -203,7 +200,7 @@ temperature samples within judge) at the requested `α`.
 
 ---
 
-## Coverage diagnostics — **M4, shipped**
+## Coverage diagnostics
 
 **File**: `src/panoptes/stats/coverage_tests.py`
 
@@ -224,7 +221,7 @@ temperature samples within judge) at the requested `α`.
 
 ---
 
-## Calibration metrics — **M4, shipped**
+## Calibration metrics
 
 **File**: `src/panoptes/stats/reliability.py`
 
@@ -251,7 +248,7 @@ optimized jointly via proper scoring rules.
 
 ---
 
-## Routing strategies — **M3, shipped**
+## Routing strategies
 
 **File**: `src/panoptes/routing/*`
 

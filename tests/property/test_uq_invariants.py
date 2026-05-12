@@ -1,4 +1,4 @@
-"""Property-based invariants for M2 UQ methods.
+"""Property-based invariants for UQ methods.
 
 Asserts behavior that must hold regardless of input:
 

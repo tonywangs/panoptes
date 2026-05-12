@@ -2,8 +2,8 @@
 
 Loaded once at startup via `load_settings()`. Provider API keys are looked up
 lazily — a missing key only errors when the corresponding client is constructed,
-not at import time, so M1 (Anthropic-only) doesn't require OpenAI/Google keys
-just to import the package.
+not at import time, so callers using only one provider don't need to set
+unrelated keys just to import the package.
 """
 
 from __future__ import annotations

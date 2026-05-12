@@ -371,9 +371,10 @@ def _aggregate_point(
     *,
     strategy: Literal["all", "single", "escalation", "bandit"] = "all",
 ) -> JuryDecision:
-    """Mean aggregator. M3 replaces this with the hierarchical Gaussian for runs
-    with ≥ 2 judges, but the mean is correct for single-judge / single-call
-    routing and is a sensible fallback when EM would be ill-conditioned.
+    """Simple mean aggregator. For routing strategies with ≥ 2 judges that
+    want the full posterior, see `uq/disagreement.HierarchicalGaussianAggregator`.
+    The mean is correct for single-judge / single-call routing and is a
+    sensible fallback when EM would be ill-conditioned.
     """
     values = np.asarray([r.score.value for r in responses], dtype=np.float64)
     mean = float(values.mean())
@@ -393,9 +394,10 @@ def _fit_split_for_decision(
 ) -> ConformalResult | None:
     """Build a split-conformal interval around the mean using inter-judge spread.
 
-    This is a stand-in calibration for M1/M2: residuals are |score_j - mean|.
-    With ground-truth labels (M5 calibration probe), this is replaced by
-    proper held-out calibration.
+    This is a stand-in calibration when ground-truth labels are not yet
+    available: residuals are |score_j - mean|. With the calibration probe
+    in `benchmarks/calibration_probe.py`, this is replaced by proper
+    held-out calibration.
     """
     if len(responses) < 2:
         return None

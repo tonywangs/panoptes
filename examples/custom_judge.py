@@ -4,10 +4,9 @@ Run with:
     uv run python examples/custom_judge.py
 
 This script defines `LengthAwareRubricJudge`, a small variant of the
-standard rubric judge that *also* records the response's character
-length in the rationale. It demonstrates the M5 acceptance criterion
-"a new contributor can add a new judge by implementing one Protocol
-class and registering it; no other code changes required".
+standard rubric judge that *also* flags long responses. It demonstrates
+that adding a new judge is one Protocol implementation — no other
+PANOPTES code changes required.
 
 The judge satisfies `panoptes.judges.base.Judge` by exposing:
     - `judge_id: str`

@@ -1,6 +1,6 @@
 """DuckDB-backed result store.
 
-Schema (v1, M1):
+Schema:
 
     runs(
         run_id           TEXT PRIMARY KEY,
@@ -222,8 +222,8 @@ class DuckDBStore:
 
     def _init_schema(self) -> None:
         self._conn.execute(_CREATE_SQL)
-        # Record / verify the schema version. M1 is version 1; future
-        # migrations bump this and apply DDL deltas.
+        # Record / verify the schema version. Future migrations bump this
+        # constant and apply DDL deltas.
         result = self._conn.execute("SELECT version FROM schema_meta").fetchone()
         if result is None:
             self._conn.execute("INSERT INTO schema_meta (version) VALUES (?)", [_SCHEMA_VERSION])

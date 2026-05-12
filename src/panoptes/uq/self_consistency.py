@@ -18,7 +18,8 @@ which is more honest in the small-`n` regime where we typically operate.
 
 The "self-consistency" framing is from Wang et al. ICLR 2023 (chain-of-
 thought stability under sampling). In PANOPTES, large MC variance is the
-*sampling-aleatoric* component of the aleatoric/epistemic split in M3.
+*sampling-aleatoric* component of the aleatoric/epistemic split (see
+`uq/decomposition.py`).
 
 References
 ----------

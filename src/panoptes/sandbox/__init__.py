@@ -1,9 +1,9 @@
 """Sandboxed code execution.
 
-M5 ships a `subprocess`-based Python sandbox for executing HumanEval /
-MBPP candidate solutions against their test blocks. A Docker backend is
-the obvious next step (better isolation, network deny by default) but
-adds setup friction; the subprocess backend is enough for trusted users
+A `subprocess`-based Python sandbox for executing HumanEval / MBPP
+candidate solutions against their test blocks. A Docker backend is the
+obvious next step (better isolation, network deny by default) but adds
+setup friction; the subprocess backend is enough for trusted users
 running their own benchmarks locally.
 
 Threat model: PANOPTES is *not* a hardened sandbox for adversarial code.

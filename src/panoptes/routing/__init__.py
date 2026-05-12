@@ -1,6 +1,6 @@
 """Routing strategies: decide which judges to call per item.
 
-Strategies share the `JuryRouter` Protocol in `base.py`. M3 ships:
+Strategies share the `JuryRouter` Protocol in `base.py`:
 
 - `AllJudges` — call every judge (baseline)
 - `SingleJudge` — call exactly one judge (cheapest baseline)

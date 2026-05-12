@@ -29,7 +29,7 @@ PANOPTES-specific notes
   +-q to the point estimate we clip to [0, 1] because intervals leaving
   the bounded range are uninformative.
 - Calibration residuals here are *symmetric absolute residuals*; for
-  asymmetric / locally-adaptive variants see `conformal_adaptive.py` (M2).
+  asymmetric / locally-adaptive variants see `conformal_adaptive.py`.
 """
 
 from __future__ import annotations

@@ -1,6 +1,6 @@
 """End-to-end pipeline smoke test with the deterministic mock client.
 
-Runs the full M1 pipeline (judge + storage + conformal) against two synthetic
+Runs the full pipeline (judge + storage + conformal) against two synthetic
 benchmark items, asserts duckdb gets two rows, and that the cost report's
 shape is consistent with what the mock judge produced.
 """

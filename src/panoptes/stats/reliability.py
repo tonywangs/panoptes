@@ -3,8 +3,9 @@
 Calibration speaks to whether *predicted probabilities* match *empirical
 frequencies*. PANOPTES's rubric scores can be interpreted probabilistically
 (e.g. "0.7 ≈ 70% chance the candidate is correct") provided you binarize
-the ground truth — in M5 this means HumanEval pass/fail, in general it
-means whatever boolean correctness signal the benchmark exposes.
+the ground truth — for HumanEval that's pass/fail under the sandboxed
+test block; in general it's whatever boolean correctness signal the
+benchmark exposes.
 
 References
 ----------

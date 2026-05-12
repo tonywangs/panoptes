@@ -5,12 +5,10 @@ datasets parquet mirror. Each item has a `question` and a list of
 correct / incorrect references; PANOPTES exposes the question as the
 prompt and stores the references for downstream judges.
 
-The BM25-over-Wikipedia evidence retrieval described in the spec is a
-bonus path; v1 ships a small `BM25Retriever` over a user-supplied passage
-list, with the canonical Wikipedia integration left as a follow-up. The
-M5 milestone exists primarily to wire the *generation* benchmark; the
-retrieval signal is useful but not load-bearing for v1's acceptance
-criteria.
+A small `BM25Retriever` is provided for injecting evidence passages into
+a factuality judge; a canonical Wikipedia integration is a planned
+follow-up. The retrieval signal is useful but not load-bearing for the
+generation-side scoring path.
 """
 
 from __future__ import annotations

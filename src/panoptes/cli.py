@@ -2,9 +2,8 @@
 
 Subcommands:
     eval BENCHMARK [...]   run an evaluation
-    calibrate              (M4)
-    report                 (M4)
-    route                  (M3)
+    report                 render an offline HTML report from a duckdb file
+    version                print the installed version
 
 The CLI is intentionally thin: it parses arguments, builds the right objects,
 and calls `run_evaluation`. All the interesting logic lives in `pipeline.py`
@@ -239,7 +238,12 @@ def report_cmd(
 
 @app.command(name="eval")
 def eval_cmd(
-    benchmark: Annotated[str, typer.Argument(help="Benchmark name (M1: humaneval).")],
+    benchmark: Annotated[
+        str,
+        typer.Argument(
+            help="Benchmark name: humaneval | mbpp | gsm8k | mtbench | truthfulqa."
+        ),
+    ],
     judges: Annotated[
         str,
         typer.Option(
@@ -417,15 +421,18 @@ def _project_root() -> Path:
 def _load_benchmark(name: str, *, n: int, cache_dir: Path) -> list[BenchmarkItem]:
     if name == "humaneval":
         return load_humaneval(cache_dir=cache_dir, limit=n)
-    raise typer.BadParameter(f"Unknown benchmark '{name}'. M1 supports: humaneval.")
+    raise typer.BadParameter(
+        f"Unknown benchmark '{name}'. CLI currently loads: humaneval."
+    )
 
 
 def _build_responses(benchmark: str, items: list[BenchmarkItem]) -> dict[str, str]:
-    """For M1: synthesize 'model responses' from each item's canonical solution.
+    """Synthesize 'model responses' from each item's canonical solution.
 
-    This is a placeholder so the smoke pipeline has something to judge before
-    M5 wires up an actual response-generation step. In practice, callers
-    should supply pre-generated responses via a (future) `--responses` flag.
+    This is a placeholder so the smoke pipeline has something to judge until
+    callers supply pre-generated responses via a `--responses` flag (planned
+    follow-up). For real grading runs, generate responses ahead of time and
+    feed them through `run_evaluation` directly.
     """
     if benchmark != "humaneval":
         return {}

@@ -3,7 +3,7 @@
 Implements `LLMClient` via `httpx.AsyncClient` against
     POST https://api.anthropic.com/v1/messages
 
-Covers the M1 feature set:
+Features:
     - tool-use structured output (single forced tool for judges)
     - prompt caching via `cache_control: {"type": "ephemeral"}` markers on
         system blocks

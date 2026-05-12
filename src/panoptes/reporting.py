@@ -2,8 +2,8 @@
 
 Reads a PANOPTES duckdb file and emits a self-contained HTML page with run
 metadata, cost-by-judge, UQ-result counts, and inter-judge agreement.
-Reliability / coverage diagnostics that need ground-truth labels arrive
-in M5 (calibration probe).
+Reliability / coverage diagnostics that need ground-truth labels are
+populated when the calibration probe is run.
 
 The output has no JS dependencies. For interactive exploration use the
 Streamlit dashboard.
