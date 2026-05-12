@@ -65,7 +65,7 @@ if TYPE_CHECKING:
     from collections.abc import Generator, Iterable
 
 
-_SCHEMA_VERSION = 1
+_SCHEMA_VERSION = 2
 
 
 _CREATE_SQL = """
@@ -109,6 +109,18 @@ CREATE TABLE IF NOT EXISTS eval_rows (
 
 CREATE INDEX IF NOT EXISTS idx_eval_rows_partition
     ON eval_rows (task_family, judge_id, prompt_version_hash);
+
+CREATE TABLE IF NOT EXISTS judge_uq_results (
+    run_id      TEXT NOT NULL,
+    item_id     TEXT NOT NULL,
+    judge_id    TEXT NOT NULL,
+    method      TEXT NOT NULL,
+    value_json  JSON NOT NULL,
+    PRIMARY KEY (run_id, item_id, judge_id, method)
+);
+
+CREATE INDEX IF NOT EXISTS idx_uq_results_partition
+    ON judge_uq_results (judge_id, method);
 """
 
 
@@ -232,6 +244,21 @@ class DuckDBStore:
             [run_id, datetime.now(UTC), json.dumps(config), __version__],
         )
 
+    def write_uq_result(
+        self,
+        *,
+        run_id: str,
+        item_id: str,
+        judge_id: str,
+        method: str,
+        value: dict[str, Any],
+    ) -> None:
+        """Idempotent upsert of a per-(item, judge, method) UQ metric blob."""
+        self._conn.execute(
+            "INSERT OR REPLACE INTO judge_uq_results VALUES (?, ?, ?, ?, ?)",
+            [run_id, item_id, judge_id, method, json.dumps(value)],
+        )
+
     def write_rows(self, rows: Iterable[JudgeRow]) -> int:
         """Idempotent bulk-insert of `JudgeRow`s; returns number written."""
         n = 0
@@ -276,6 +303,10 @@ class DuckDBStore:
 
     def count_rows(self) -> int:
         result = self._conn.execute("SELECT COUNT(*) FROM eval_rows").fetchone()
+        return 0 if result is None else int(result[0])
+
+    def count_uq_results(self) -> int:
+        result = self._conn.execute("SELECT COUNT(*) FROM judge_uq_results").fetchone()
         return 0 if result is None else int(result[0])
 
     def has_cached(

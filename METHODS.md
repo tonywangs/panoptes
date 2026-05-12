@@ -54,51 +54,87 @@ target coverage and we return `+∞` rather than silently undercovering.
 
 ---
 
-## Adaptive / locally-weighted conformal (CQR) — **planned M2**
+## Adaptive / locally-weighted conformal (CQR) — **M2, shipped**
 
-**File**: `src/panoptes/uq/conformal_adaptive.py` (stub)
+**File**: `src/panoptes/uq/conformal_adaptive.py`
 
 Conformalized Quantile Regression: fit two quantile regressors `q̂_{α/2}` and
-`q̂_{1-α/2}` on the training split; compute conformity scores from their
-out-of-sample residuals; calibrate as in split conformal. Interval widths are
-*input-adaptive*: harder examples get wider intervals.
+`q̂_{1-α/2}` on the training split (we use `GradientBoostingRegressor(loss='quantile')`);
+compute the signed conformity scores
+
+```
+E_i = max(q̂_{α/2}(X_i) - Y_i, Y_i - q̂_{1-α/2}(X_i))
+```
+
+on the calibration split; the interval is `[q̂_{α/2}(x) - Q_E, q̂_{1-α/2}(x) + Q_E]`
+where `Q_E = ceil((n+1)(1-α))/n`-th quantile of `{E_i}`. Interval widths are
+*input-adaptive*: low-noise regions get narrower intervals than high-noise
+ones, while the marginal coverage `1 - α` guarantee is preserved.
 
 **Reference**: Romano, Patterson, Candès (2019). *Conformalized Quantile Regression.* NeurIPS.
 
 ---
 
-## Mondrian / group-conditional conformal — **planned M2**
+## Mondrian / group-conditional conformal — **M2, shipped**
 
-**File**: `src/panoptes/uq/conformal_mondrian.py` (stub)
+**File**: `src/panoptes/uq/conformal_mondrian.py`
 
 Partition the calibration set by `task_family` (code / math / factuality /
 freeform). Compute per-group quantiles; serve each test example from its
-group's quantile. Recovers *conditional* coverage under the same exchangeability
-assumption, at the cost of smaller per-group calibration sets.
+group's quantile. Recovers *conditional* coverage:
+
+```
+P(Y ∈ C(X) | g(X) = g) ≥ 1 - α  for every group g with n_g ≥ min_group_size
+```
+
+at the cost of smaller per-group calibration sets. Groups below
+`min_group_size` (default 50) fall back to the pooled marginal quantile.
 
 **Reference**: Vovk, Lindsay, Nouretdinov, Gammerman (2003). *Mondrian Confidence Machine.*
 
 ---
 
-## Semantic entropy — **planned M2**
+## Semantic entropy — **M2, shipped**
 
-**File**: `src/panoptes/uq/semantic_entropy.py` (stub)
+**File**: `src/panoptes/uq/semantic_entropy.py`
 
 Draw `N` temperature-1 samples from the judge; cluster by *bidirectional NLI
-entailment* (samples mutually entail → same cluster); compute Shannon entropy
-over the cluster-size distribution. Bidirectional NLI backend: local
-DeBERTa-v3-large-mnli by default, LLM-as-NLI fallback.
+entailment* (samples mutually entail → same cluster); compute Shannon
+entropy over the cluster-size distribution `p_c = |c| / N`:
+
+```
+H = -Σ_c p_c log p_c,   bounded in [0, log N].
+```
+
+Optional log-probability weighting (`weights[c] ∝ Σ_{s ∈ c} exp(log_p(s))`)
+matches the Farquhar et al. formulation when judge response log-probs are
+exposed by the provider. Bidirectional NLI backends:
+
+- **DeBERTa-v3-large-mnli** (local HF, default) — `nli/deberta.py`, behind
+  the `providers-hf` extra to keep the base install lean.
+- **LLM-as-NLI** fallback — `nli/llm.py`, uses any `LLMClient` and asks for
+  a 3-way label via structured output. Costs O(N²) LLM calls per item.
 
 **Reference**: Farquhar, Kossen, Kuhn, Gal (2024). *Detecting hallucinations in large language models using semantic entropy.* Nature.
 
 ---
 
-## Self-consistency variance — **planned M2**
+## Self-consistency variance — **M2, shipped**
 
-**File**: `src/panoptes/uq/self_consistency.py` (stub)
+**File**: `src/panoptes/uq/self_consistency.py`
 
-Monte Carlo variance + IQR over `n` temperature samples; Bayesian bootstrap CI
-on the mean using Dirichlet(1, ..., 1) weights.
+For `n` temperature-sampled scores from the same `(judge, item)` pair:
+
+- **Sample variance** with `ddof=1` (unbiased)
+- **IQR** via `scipy.stats.iqr`
+- **Bayesian bootstrap CI** on the mean (Rubin 1981): draw `B` weight
+  vectors `w^(b) ~ Dirichlet(1, ..., 1)`, form weighted means
+  `μ^(b) = Σ w^(b)_i s_i`, and report the `(α/2, 1-α/2)` quantiles of
+  `{μ^(b)}`.
+
+The Bayesian bootstrap (vs Efron) avoids ties from discrete resampling and
+matches the posterior of a noninformative Dirichlet-process prior, which is
+more honest at the small `n` we typically see (≤ 20 samples per item).
 
 **References**:
 - Wang, Wei, Schuurmans, Le, Chi, et al. (2023). *Self-Consistency Improves Chain of Thought Reasoning in Language Models.* ICLR.

@@ -6,15 +6,25 @@ PANOPTES treats LLM evaluation as a first-class statistical inference problem ra
 
 > Status: **M1 (foundation) shipped.** Full v1.0 roadmap below; numbers under "Results" are deliberately empty until measured.
 
-## What's in M1
+## What's shipped (M1 + M2)
 
-- Async, provider-agnostic `LLMClient` Protocol with an Anthropic Messages-API impl (httpx, prompt-cache aware, exponential backoff with full jitter, retriable vs terminal error taxonomy).
-- Pydantic v2 schemas for every cross-module contract: `EvalRecord`, `JudgeResponse`, `RubricScore`, `ConformalResult`, `CostReport`, etc. `pyright --strict` clean.
+**M1 — foundation**
+
+- Async, provider-agnostic `LLMClient` Protocol with exponential-backoff-with-full-jitter retry, retriable vs terminal error taxonomy, and per-provider `asyncio.Semaphore` rate limiting.
+- Pydantic v2 schemas for every cross-module contract. `pyright --strict` clean.
 - Single-call rubric judge with versioned, content-hashed prompt templates.
-- **Split conformal prediction** (Vovk/Gammerman/Shafer 2005; Papadopoulos et al. 2002) over bounded scores, with the finite-sample `ceil((n+1)(1-α))/n` quantile correction.
-- HumanEval loader (content-hashed HTTP cache) + DuckDB result store partitioned by `(task_family, judge_id, prompt_version_hash)`.
-- Typer CLI: `panoptes eval humaneval --judges claude --uq split --n 5`.
-- Mocked-client smoke path + property tests with `hypothesis` + respx-based provider tests.
+- **Split conformal prediction** (Vovk/Gammerman/Shafer 2005) with finite-sample `ceil((n+1)(1-α))/n` quantile correction.
+- HumanEval loader, DuckDB result store partitioned by `(task_family, judge_id, prompt_version_hash)`.
+
+**M2 — UQ breadth + remaining providers**
+
+- Provider impls for **Anthropic**, **OpenAI**, **Google Gemini**, and **OpenAI-compatible** (Together, Groq, vLLM) — each tested with respx-mocked HTTP.
+- **Conformalized Quantile Regression** (Romano, Patterson, Candès 2019) — input-adaptive interval widths via sklearn quantile gradient boosting.
+- **Mondrian / group-conditional conformal** (Vovk et al. 2003) — per-group quantiles, fallback to marginal when group is small.
+- **Semantic entropy** (Farquhar et al. 2024) — bidirectional NLI clustering with two backends: local **DeBERTa-v3-mnli** (`--nli=deberta`, behind the `providers-hf` extra) and **LLM-as-NLI** fallback (`--nli=llm`).
+- **Self-consistency** (Wang et al. 2023) — Monte Carlo variance + IQR + Bayesian bootstrap CI (Rubin 1981, Dirichlet(1,...,1) weights).
+- Pipeline sampling pass (temperature > 0, `n_samples > 0`) wired through duckdb's new `judge_uq_results` table.
+- Rubric templates for code, math, factuality, and free-form quality.
 
 ## Install
 
@@ -30,16 +40,28 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 ## Quick start
 
-Run the M1 smoke without an API key (deterministic mock judge):
+Run a smoke with the deterministic mock client (no API key needed):
 
 ```sh
+# M1 path
 uv run panoptes eval humaneval --judges claude --uq split --n 5 --mock --out runs/smoke.duckdb
+
+# M2 path — multi-judge, sampling-based UQ, LLM-as-NLI semantic entropy
+uv run panoptes eval humaneval \
+  --judges claude,gpt,gemini \
+  --uq split,self-consistency,semantic-entropy \
+  --n 5 --n-samples 5 --nli llm --mock \
+  --out runs/m2_smoke.duckdb
 ```
 
-With a real Anthropic key:
+With real provider keys (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`):
 
 ```sh
-uv run panoptes eval humaneval --judges claude --uq split --n 5 --out runs/v1.duckdb
+uv run panoptes eval humaneval \
+  --judges claude,gpt,gemini \
+  --uq split,self-consistency,semantic-entropy \
+  --n 20 --n-samples 10 \
+  --out runs/v2.duckdb
 ```
 
 ## Results
@@ -51,7 +73,7 @@ uv run panoptes eval humaneval --judges claude --uq split --n 5 --out runs/v1.du
 | Milestone | Scope |
 |---|---|
 | **M1** ✅ | Foundation: schemas, Anthropic client, rubric judge, split conformal, HumanEval, DuckDB, CLI, CI. |
-| **M2** | UQ breadth: OpenAI / Google / OpenAI-compat clients; adaptive (CQR) and Mondrian conformal; self-consistency; semantic entropy (Farquhar et al. 2024). |
+| **M2** ✅ | UQ breadth: OpenAI / Google / OpenAI-compat clients; adaptive (CQR) and Mondrian conformal; self-consistency; semantic entropy (Farquhar et al. 2024). |
 | **M3** | Routing: hierarchical-Gaussian jury aggregation; aleatoric/epistemic decomposition; escalation + Thompson-sampling bandit. |
 | **M4** | Statistics & dashboard: coverage diagnostics, reliability diagrams with bootstrap bands, coverage-width Pareto, Streamlit dashboard over DuckDB. |
 | **M5** | Remaining benchmarks (MBPP, GSM8K, TruthfulQA + BM25, MT-Bench), sandboxed Python execution, calibration probe, polish. |

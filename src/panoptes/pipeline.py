@@ -6,13 +6,14 @@ directly with a mock client. Two passes are run per item:
 1. **Point pass** (`temperature=0`): one call per judge. Skipped per-item if
    `PromptCache` reports a hit. Results are written to duckdb immediately so
    crashes don't lose work.
-2. **Sampling pass** (`temperature>0`, `n_samples>1`): no-op in M1; the
-   sampling-based UQ methods (semantic entropy, self-consistency) land in M2.
+2. **Sampling pass** (`temperature=temperature_sampling`, `n_samples > 0`):
+   one call per (judge, item, sample_index) at the sampling temperature.
+   Used by `self-consistency` and `semantic-entropy` UQ methods. Sampling
+   responses are stored with `sample_index > 0` and bypass the prompt cache
+   (each sample is an independent draw).
 
 Concurrency: judge calls fan out via `asyncio.gather` per item; the per-
 provider `asyncio.Semaphore` inside each client caps simultaneous requests.
-This gives us "everything in flight, bounded by provider quota" without the
-pipeline knowing each provider's quota directly.
 """
 
 from __future__ import annotations
@@ -37,8 +38,13 @@ from panoptes.schemas import (
 from panoptes.storage.duckdb_store import DuckDBStore, row_from_response
 from panoptes.storage.prompt_cache import PromptCache
 from panoptes.uq.conformal_split import SplitConformal
+from panoptes.uq.nli.base import NLIBackend
+from panoptes.uq.self_consistency import self_consistency_stats
+from panoptes.uq.semantic_entropy import semantic_entropy
 
 log = logging.getLogger(__name__)
+
+_SAMPLING_UQ_METHODS = frozenset({"self-consistency", "semantic-entropy"})
 
 
 @dataclass(slots=True)
@@ -49,6 +55,26 @@ class EvalConfig:
     alpha: float = 0.1
     uq_methods: tuple[str, ...] = ("split",)
     skip_cached: bool = True
+    n_samples: int = 0
+    temperature_sampling: float = 1.0
+
+    @property
+    def needs_sampling(self) -> bool:
+        """True iff any selected UQ method requires the sampling pass."""
+        return any(m in _SAMPLING_UQ_METHODS for m in self.uq_methods)
+
+    def effective_n_samples(self) -> int:
+        """Return `n_samples` if set, else a sensible default when sampling is needed.
+
+        Farquhar et al. (2024) use 10 samples; that is our default when
+        sampling UQ methods are requested but the user didn't set
+        `n_samples` explicitly.
+        """
+        if self.n_samples > 0:
+            return self.n_samples
+        if self.needs_sampling:
+            return 10
+        return 0
 
 
 @dataclass(slots=True)
@@ -73,8 +99,9 @@ async def run_evaluation(
     cache: PromptCache | None,
     config: EvalConfig,
     model_under_test: str,
+    nli_backend: NLIBackend | None = None,
 ) -> CostReport:
-    """Run the M1 point-pass eval. Returns a per-judge cost summary.
+    """Run point pass and (optionally) sampling pass. Returns per-judge cost.
 
     Errors from individual judge calls propagate. We deliberately do not
     swallow failures: a single failing judge usually means a config bug
@@ -87,11 +114,19 @@ async def run_evaluation(
             "uq_methods": list(config.uq_methods),
             "judges": [ref.judge.judge_id for ref in judges],
             "n_items": len(items),
+            "n_samples": config.effective_n_samples(),
+            "temperature_sampling": config.temperature_sampling,
             "model_under_test": model_under_test,
         },
     )
     cost = _CostAccumulator()
-    all_records: list[EvalRecord] = []
+    n_samples = config.effective_n_samples()
+
+    if "semantic-entropy" in config.uq_methods and nli_backend is None:
+        raise ValueError(
+            "uq=semantic-entropy requires an `nli_backend` argument; pass an "
+            "LLMNLIBackend or DebertaNLIBackend to run_evaluation()."
+        )
 
     for item in items:
         response_text = responses.get(item.item_id)
@@ -104,10 +139,27 @@ async def run_evaluation(
             model_under_test=model_under_test,
             model_response=response_text,
         )
-        responses_per_judge = await _judge_item(item, response_text, judges, cache, config)
-        for jr in responses_per_judge:
+
+        # Point pass at temp=0.
+        point_responses = await _point_pass(item, response_text, judges, cache, config)
+        for jr in point_responses:
             record.judge_responses.append(jr)
             cost.add(jr)
+
+        # Sampling pass for sampling-based UQ methods.
+        samples_by_judge: dict[str, list[JudgeResponse]] = {}
+        if n_samples > 0:
+            samples_by_judge = await _sampling_pass(
+                item, response_text, judges, config, n_samples
+            )
+            for jr_list in samples_by_judge.values():
+                for jr in jr_list:
+                    cost.add(jr)
+            # Persist sample rows alongside point-pass rows.
+            for jr_list in samples_by_judge.values():
+                store.write_rows(row_from_response(record, jr) for jr in jr_list)
+
+        # Aggregation + conformal (M1 path; M3 replaces with hierarchical Gaussian).
         if record.judge_responses:
             decision = _aggregate_point(record.judge_responses)
             if "split" in config.uq_methods:
@@ -115,10 +167,57 @@ async def run_evaluation(
                 if conformal is not None:
                     decision.conformal.append(conformal)
             record.jury_decision = decision
-        all_records.append(record)
-        store.write_rows(row_from_response(record, jr) for jr in record.judge_responses)
 
-    log.info("Pipeline finished: %d items, %d judge calls", len(all_records), cost.n_calls)
+        # Sampling-based UQ metrics, written to judge_uq_results.
+        if samples_by_judge and "self-consistency" in config.uq_methods:
+            for judge_id, sample_list in samples_by_judge.items():
+                values = np.asarray([s.score.value for s in sample_list], dtype=np.float64)
+                if values.shape[0] >= 2:
+                    sc = self_consistency_stats(values, alpha=config.alpha)
+                    store.write_uq_result(
+                        run_id=config.run_id,
+                        item_id=item.item_id,
+                        judge_id=judge_id,
+                        method="self-consistency",
+                        value={
+                            "mean": sc.mean,
+                            "variance": sc.variance,
+                            "iqr": sc.iqr,
+                            "ci_low": sc.ci_low,
+                            "ci_high": sc.ci_high,
+                            "alpha": sc.alpha,
+                            "n_samples": sc.n_samples,
+                        },
+                    )
+        if samples_by_judge and "semantic-entropy" in config.uq_methods:
+            assert nli_backend is not None  # validated above
+            for judge_id, sample_list in samples_by_judge.items():
+                # Use rationale strings as the semantic content to cluster, falling
+                # back to raw_text when rationale is empty. The judge's *score* is
+                # numeric; semantic entropy is over the natural-language justification.
+                texts = [s.score.rationale or s.raw_text for s in sample_list]
+                if len(texts) >= 2:
+                    se = await semantic_entropy(texts, nli=nli_backend)
+                    store.write_uq_result(
+                        run_id=config.run_id,
+                        item_id=item.item_id,
+                        judge_id=judge_id,
+                        method="semantic-entropy",
+                        value={
+                            "entropy": se.entropy,
+                            "n_clusters": se.n_clusters,
+                            "cluster_sizes": list(se.cluster_sizes),
+                            "n_samples": len(sample_list),
+                        },
+                    )
+
+        store.write_rows(row_from_response(record, jr) for jr in point_responses)
+
+    log.info(
+        "Pipeline finished: %d items, %d judge calls (point + sample)",
+        len(items),
+        cost.n_calls,
+    )
     return cost.to_report()
 
 
@@ -127,14 +226,14 @@ async def run_evaluation(
 # ---------------------------------------------------------------------------
 
 
-async def _judge_item(
+async def _point_pass(
     item: BenchmarkItem,
     response_text: str,
     judges: Sequence[JudgeRef],
     cache: PromptCache | None,
     config: EvalConfig,
 ) -> list[JudgeResponse]:
-    """Fan out to all judges in parallel; respect prompt-cache if configured."""
+    """Fan out one temp=0 call per judge; honor prompt cache."""
 
     async def _one(ref: JudgeRef) -> JudgeResponse | None:
         if (
@@ -153,6 +252,40 @@ async def _judge_item(
 
     results = await asyncio.gather(*[_one(ref) for ref in judges])
     return [r for r in results if r is not None]
+
+
+async def _sampling_pass(
+    item: BenchmarkItem,
+    response_text: str,
+    judges: Sequence[JudgeRef],
+    config: EvalConfig,
+    n_samples: int,
+) -> dict[str, list[JudgeResponse]]:
+    """Fan out `n_samples` temp>0 calls per judge for this item.
+
+    Sampling responses bypass the prompt cache: each sample is an independent
+    draw and re-sampling on rerun is the correct behavior.
+    """
+
+    async def _one(ref: JudgeRef, sample_idx: int) -> JudgeResponse:
+        return await ref.judge.evaluate(
+            item,
+            response_text,
+            sample_index=sample_idx + 1,  # reserve 0 for the point pass
+            temperature=config.temperature_sampling,
+        )
+
+    tasks: list[asyncio.Task[JudgeResponse]] = []
+    judge_for_task: list[str] = []
+    for ref in judges:
+        for k in range(n_samples):
+            tasks.append(asyncio.create_task(_one(ref, k)))
+            judge_for_task.append(ref.judge.judge_id)
+    results = await asyncio.gather(*tasks)
+    by_judge: dict[str, list[JudgeResponse]] = {}
+    for judge_id, r in zip(judge_for_task, results, strict=True):
+        by_judge.setdefault(judge_id, []).append(r)
+    return by_judge
 
 
 def _aggregate_point(responses: list[JudgeResponse]) -> JuryDecision:
@@ -175,10 +308,9 @@ def _fit_split_for_decision(
 ) -> ConformalResult | None:
     """Build a split-conformal interval around the mean using inter-judge spread.
 
-    This is a stand-in calibration for M1: residuals are |score_j - mean|.
+    This is a stand-in calibration for M1/M2: residuals are |score_j - mean|.
     With ground-truth labels (M5 calibration probe), this is replaced by
-    proper held-out calibration. We emit the result so the storage and
-    reporting paths see a real `ConformalResult` shape.
+    proper held-out calibration.
     """
     if len(responses) < 2:
         return None

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated
 
@@ -28,7 +29,10 @@ from panoptes.benchmarks.humaneval import load_humaneval
 from panoptes.clients._mock import MockClient
 from panoptes.clients.anthropic import AnthropicClient
 from panoptes.clients.base import LLMClient
-from panoptes.config import load_settings
+from panoptes.clients.google import GoogleClient
+from panoptes.clients.openai import OpenAIClient
+from panoptes.clients.openai_compat import GroqClient, TogetherClient
+from panoptes.config import Settings, load_settings
 from panoptes.errors import ConfigError
 from panoptes.judges.base import load_prompt_template
 from panoptes.judges.rubric import RubricJudge
@@ -36,6 +40,8 @@ from panoptes.pipeline import EvalConfig, JudgeRef, new_run_id, run_evaluation
 from panoptes.schemas import BenchmarkItem, CostReport
 from panoptes.storage.duckdb_store import DuckDBStore
 from panoptes.storage.prompt_cache import PromptCache
+from panoptes.uq.nli.base import NLIBackend
+from panoptes.uq.nli.llm import LLMNLIBackend
 
 app = typer.Typer(
     name="panoptes",
@@ -50,52 +56,125 @@ console = Console()
 # ---------------------------------------------------------------------------
 
 
-# Short judge aliases acceptable on the CLI -> (provider, default model, prompt path).
-_JUDGE_ALIASES: dict[str, tuple[str, str, str]] = {
-    "claude": ("anthropic", "claude-sonnet-4-6", "prompts/rubric_code_v1.md"),
-    "claude-haiku": ("anthropic", "claude-haiku-4-5", "prompts/rubric_code_v1.md"),
-    "claude-opus": ("anthropic", "claude-opus-4-7", "prompts/rubric_code_v1.md"),
+@dataclass(frozen=True, slots=True)
+class _JudgeAlias:
+    """Resolved metadata for a CLI judge alias."""
+
+    provider: str
+    model: str
+    prompt_rel: str
+    env_var: str
+
+
+_JUDGE_ALIASES: dict[str, _JudgeAlias] = {
+    # Anthropic
+    "claude": _JudgeAlias("anthropic", "claude-sonnet-4-6", "prompts/rubric_code_v1.md", "ANTHROPIC_API_KEY"),
+    "claude-haiku": _JudgeAlias("anthropic", "claude-haiku-4-5", "prompts/rubric_code_v1.md", "ANTHROPIC_API_KEY"),
+    "claude-opus": _JudgeAlias("anthropic", "claude-opus-4-7", "prompts/rubric_code_v1.md", "ANTHROPIC_API_KEY"),
+    # OpenAI
+    "gpt": _JudgeAlias("openai", "gpt-4o", "prompts/rubric_code_v1.md", "OPENAI_API_KEY"),
+    "gpt-mini": _JudgeAlias("openai", "gpt-4o-mini", "prompts/rubric_code_v1.md", "OPENAI_API_KEY"),
+    # Google
+    "gemini": _JudgeAlias("google", "gemini-2.5-pro", "prompts/rubric_code_v1.md", "GOOGLE_API_KEY"),
+    # OpenAI-compat
+    "together-llama": _JudgeAlias(
+        "together",
+        "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+        "prompts/rubric_code_v1.md",
+        "TOGETHER_API_KEY",
+    ),
+    "groq-llama": _JudgeAlias(
+        "groq", "llama-3.1-70b-versatile", "prompts/rubric_code_v1.md", "GROQ_API_KEY"
+    ),
 }
 
 
-def _resolve_judge(alias: str, *, mock: bool, project_root: Path) -> JudgeRef:
-    """Build a `JudgeRef` from a CLI judge alias.
-
-    For M1, only Anthropic-backed aliases resolve. Future milestones extend
-    `_JUDGE_ALIASES` and the provider dispatch. If `mock=True`, we substitute
-    a `MockClient` so the CLI can run without API keys.
-    """
-    if alias not in _JUDGE_ALIASES:
-        raise typer.BadParameter(f"Unknown judge alias '{alias}'. Known: {sorted(_JUDGE_ALIASES)}")
-    provider, model, prompt_rel = _JUDGE_ALIASES[alias]
-    if provider != "anthropic":
-        raise typer.BadParameter(f"Provider '{provider}' is not yet supported in M1.")
-    template_path = project_root / prompt_rel
-    if not template_path.exists():
-        raise typer.BadParameter(
-            f"Prompt template not found at {template_path}. "
-            "Run `panoptes` from the repository root, or symlink prompts/."
-        )
-    template = load_prompt_template(template_path)
-    client: LLMClient
+def _build_client(spec: _JudgeAlias, *, mock: bool, settings: Settings) -> LLMClient:
+    """Instantiate the right `LLMClient` for `spec.provider`."""
     if mock:
-        client = MockClient(provider="anthropic", model=model)
-    else:
-        settings = load_settings()
-        try:
-            api_key = settings.api_key("ANTHROPIC_API_KEY")
-        except ConfigError as exc:
-            raise typer.BadParameter(str(exc)) from exc
-        client = AnthropicClient(
+        return MockClient(provider=spec.provider, model=spec.model)
+    try:
+        api_key = settings.api_key(spec.env_var)
+    except ConfigError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    rate_limit = settings.rate_limits.get(spec.provider)
+    if spec.provider == "anthropic":
+        return AnthropicClient(
             api_key=api_key,
-            model=model,
-            rate_limit=settings.rate_limits.get(provider),
+            model=spec.model,
+            rate_limit=rate_limit,
             request_timeout_s=settings.request_timeout_s,
             connect_timeout_s=settings.connect_timeout_s,
             max_retries=settings.max_retries,
             backoff_base_s=settings.backoff_base_s,
             backoff_max_s=settings.backoff_max_s,
         )
+    if spec.provider == "openai":
+        return OpenAIClient(
+            api_key=api_key,
+            model=spec.model,
+            rate_limit=rate_limit,
+            request_timeout_s=settings.request_timeout_s,
+            connect_timeout_s=settings.connect_timeout_s,
+            max_retries=settings.max_retries,
+            backoff_base_s=settings.backoff_base_s,
+            backoff_max_s=settings.backoff_max_s,
+        )
+    if spec.provider == "google":
+        return GoogleClient(
+            api_key=api_key,
+            model=spec.model,
+            rate_limit=rate_limit,
+            request_timeout_s=settings.request_timeout_s,
+            connect_timeout_s=settings.connect_timeout_s,
+            max_retries=settings.max_retries,
+            backoff_base_s=settings.backoff_base_s,
+            backoff_max_s=settings.backoff_max_s,
+        )
+    if spec.provider == "together":
+        return TogetherClient(
+            api_key=api_key,
+            model=spec.model,
+            rate_limit=rate_limit,
+            request_timeout_s=settings.request_timeout_s,
+            connect_timeout_s=settings.connect_timeout_s,
+            max_retries=settings.max_retries,
+            backoff_base_s=settings.backoff_base_s,
+            backoff_max_s=settings.backoff_max_s,
+        )
+    if spec.provider == "groq":
+        return GroqClient(
+            api_key=api_key,
+            model=spec.model,
+            rate_limit=rate_limit,
+            request_timeout_s=settings.request_timeout_s,
+            connect_timeout_s=settings.connect_timeout_s,
+            max_retries=settings.max_retries,
+            backoff_base_s=settings.backoff_base_s,
+            backoff_max_s=settings.backoff_max_s,
+        )
+    raise typer.BadParameter(f"Unsupported provider '{spec.provider}'.")
+
+
+def _resolve_judge(alias: str, *, mock: bool, project_root: Path) -> JudgeRef:
+    """Build a `JudgeRef` from a CLI judge alias.
+
+    `mock=True` substitutes a `MockClient` so the CLI can run without keys.
+    """
+    if alias not in _JUDGE_ALIASES:
+        raise typer.BadParameter(
+            f"Unknown judge alias '{alias}'. Known: {sorted(_JUDGE_ALIASES)}"
+        )
+    spec = _JUDGE_ALIASES[alias]
+    template_path = project_root / spec.prompt_rel
+    if not template_path.exists():
+        raise typer.BadParameter(
+            f"Prompt template not found at {template_path}. "
+            "Run `panoptes` from the repository root, or symlink prompts/."
+        )
+    template = load_prompt_template(template_path)
+    settings = load_settings()
+    client = _build_client(spec, mock=mock, settings=settings)
     variant = template_path.stem  # e.g. 'rubric_code_v1'
     judge = RubricJudge(client=client, template=template, variant=variant)
     return JudgeRef(judge=judge, prompt_version_hash=template.content_hash)
@@ -123,7 +202,11 @@ def eval_cmd(
         ),
     ] = "claude",
     uq: Annotated[
-        str, typer.Option("--uq", help="Comma-separated UQ methods (M1: 'split').")
+        str,
+        typer.Option(
+            "--uq",
+            help="Comma-separated UQ methods: split, adaptive, mondrian, self-consistency, semantic-entropy.",
+        ),
     ] = "split",
     n: Annotated[int, typer.Option("--n", help="Truncate benchmark to first N items.")] = 5,
     alpha: Annotated[float, typer.Option("--alpha", help="Conformal miscoverage rate.")] = 0.1,
@@ -134,6 +217,34 @@ def eval_cmd(
         bool,
         typer.Option("--mock", help="Use a deterministic in-memory client. No API key needed."),
     ] = False,
+    n_samples: Annotated[
+        int,
+        typer.Option(
+            "--n-samples",
+            help="Sampling-pass MC draws per (judge, item). 0 = auto (10 if needed).",
+        ),
+    ] = 0,
+    temperature_sampling: Annotated[
+        float,
+        typer.Option(
+            "--temperature-sampling",
+            help="Temperature for the sampling pass. Ignored when n-samples == 0.",
+        ),
+    ] = 1.0,
+    nli: Annotated[
+        str,
+        typer.Option(
+            "--nli",
+            help="NLI backend for semantic-entropy: 'llm' (default) or 'deberta'.",
+        ),
+    ] = "llm",
+    nli_judge: Annotated[
+        str,
+        typer.Option(
+            "--nli-judge",
+            help="When --nli=llm, judge alias used to classify entailment.",
+        ),
+    ] = "claude-haiku",
     model_under_test: Annotated[
         str,
         typer.Option(
@@ -162,6 +273,11 @@ def eval_cmd(
         run_id=new_run_id(),
         alpha=alpha,
         uq_methods=uq_methods,
+        n_samples=n_samples,
+        temperature_sampling=temperature_sampling,
+    )
+    nli_backend = _resolve_nli_backend(
+        nli, nli_judge=nli_judge, mock=mock, project_root=project_root, config=config
     )
     out.parent.mkdir(parents=True, exist_ok=True)
     with DuckDBStore.open(out) as store:
@@ -175,9 +291,16 @@ def eval_cmd(
                 cache=cache,
                 config=config,
                 model_under_test=model_under_test,
+                nli_backend=nli_backend,
             )
         )
-        _print_summary(cost, out=out, n_items=len(items), run_id=config.run_id)
+        _print_summary(
+            cost,
+            out=out,
+            n_items=len(items),
+            run_id=config.run_id,
+            n_uq_results=store.count_uq_results(),
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -222,7 +345,51 @@ def _build_responses(benchmark: str, items: list[BenchmarkItem]) -> dict[str, st
     return responses
 
 
-def _print_summary(cost: CostReport, *, out: Path, n_items: int, run_id: str) -> None:
+def _resolve_nli_backend(
+    backend: str,
+    *,
+    nli_judge: str,
+    mock: bool,
+    project_root: Path,
+    config: EvalConfig,
+) -> NLIBackend | None:
+    """Build the NLI backend if any selected UQ method needs it; else None.
+
+    `deberta` requires the `providers-hf` extra (transformers + torch).
+    `llm` reuses the CLI's judge resolution so the NLI judge can be any
+    alias (defaulting to a cheap Haiku for cost reasons).
+    """
+    if "semantic-entropy" not in config.uq_methods:
+        return None
+    if backend == "llm":
+        if nli_judge not in _JUDGE_ALIASES:
+            raise typer.BadParameter(
+                f"--nli-judge='{nli_judge}' not in {sorted(_JUDGE_ALIASES)}"
+            )
+        spec = _JUDGE_ALIASES[nli_judge]
+        settings = load_settings()
+        client = _build_client(spec, mock=mock, settings=settings)
+        return LLMNLIBackend(client=client)
+    if backend == "deberta":
+        try:
+            from panoptes.uq.nli.deberta import DebertaNLIBackend  # noqa: PLC0415
+        except ImportError as exc:
+            raise typer.BadParameter(
+                "--nli=deberta requires `transformers` and `torch`. "
+                "Install via: uv sync --extra providers-hf"
+            ) from exc
+        return DebertaNLIBackend()
+    raise typer.BadParameter(f"Unknown NLI backend '{backend}'. Try 'llm' or 'deberta'.")
+
+
+def _print_summary(
+    cost: CostReport,
+    *,
+    out: Path,
+    n_items: int,
+    run_id: str,
+    n_uq_results: int,
+) -> None:
     table = Table(title=f"PANOPTES run {run_id}", show_lines=False)
     table.add_column("metric", style="cyan", no_wrap=True)
     table.add_column("value", style="white")
@@ -233,6 +400,7 @@ def _print_summary(cost: CostReport, *, out: Path, n_items: int, run_id: str) ->
     table.add_row("cache_read tokens", f"{cost.cache_read_tokens:,}")
     table.add_row("cache_creation tokens", f"{cost.cache_creation_tokens:,}")
     table.add_row("usd_total", f"${cost.usd_total:.6f}")
+    table.add_row("uq results", str(n_uq_results))
     table.add_row("output", str(out))
     console.print(table)
     if cost.by_judge:
