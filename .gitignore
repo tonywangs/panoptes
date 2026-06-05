@@ -38,8 +38,14 @@ runs/
 *.duckdb
 *.duckdb.wal
 report.html
+demo_report.html
 
 # Secrets
 .env
 .env.local
 *.pem
+
+# Demo / personal notes
+demo-script.md
+notes/
+*.local.md
