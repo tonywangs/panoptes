@@ -48,10 +48,10 @@ export function BeforeAfter() {
             · 3 judges, 5 temperature samples each
           </li>
           <li className="text-foreground">
-            · 65% epistemic variance — call more judges
+            · 65% epistemic variance. Call more judges.
           </li>
           <li className="text-foreground">
-            · 35% aleatoric — task itself is ambiguous
+            · 35% aleatoric. Task itself is ambiguous.
           </li>
           <li className="text-foreground">
             · conformal interval at α = 0.10, finite-sample valid

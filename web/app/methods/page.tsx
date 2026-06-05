@@ -74,7 +74,7 @@ const METHODS: Method[] = [
     status: "shipped",
     module: "panoptes.uq.decomposition",
     summary:
-      "Var_total = E_j[Var(score | judge=j)] + Var_j[E(score | judge=j)]. Nested resampling — outer over judges (epistemic), inner over temperature samples (aleatoric).",
+      "Var_total = E_j[Var(score | judge=j)] + Var_j[E(score | judge=j)]. Nested resampling: outer over judges (epistemic), inner over temperature samples (aleatoric).",
     refs: [
       "Kendall, Gal (2017). What Uncertainties Do We Need in Bayesian Deep Learning for Computer Vision? NeurIPS.",
       "Depeweg, Hernández-Lobato, Doshi-Velez, Udluft (2018). Decomposition of Uncertainty in Bayesian Deep Learning. ICML.",

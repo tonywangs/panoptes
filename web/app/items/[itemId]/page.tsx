@@ -119,7 +119,7 @@ export default async function ItemPage(props: PageProps<"/items/[itemId]">) {
           <CardTitle>3a. point-pass scores (temperature 0)</CardTitle>
           <p className="mt-2 text-xs muted leading-relaxed">
             One call per judge at <code className="font-mono">temperature=0</code>. This is the
-            "best single guess" each judge has. Disagreement here is structural — the judges
+            "best single guess" each judge has. Disagreement here is structural. The judges
             literally see this candidate differently.
           </p>
           <div className="mt-4 flex flex-col gap-3">

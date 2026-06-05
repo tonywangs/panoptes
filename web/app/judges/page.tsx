@@ -22,7 +22,7 @@ export default function JudgesPage() {
           PANOPTES routinely runs three different LLM judges (Claude, GPT-4o, Gemini) on the same
           task. If they're all rating the same latent quality on the same scale, their scores
           should be tightly correlated. If they're not, the framework's job is to give us a
-          principled way to combine their disagreement into a posterior — but it's worth knowing
+          principled way to combine their disagreement into a posterior. But it's worth knowing
           how much disagreement there is to begin with.
         </p>
       </header>
@@ -82,12 +82,12 @@ export default function JudgesPage() {
         <h2 className="mt-2 text-2xl font-medium tracking-tight">Scatter + bootstrap CIs</h2>
         <p className="mt-3 max-w-3xl text-sm muted leading-relaxed">
           One scatter per judge pair. Each dot is one item; the dashed line is "perfect agreement."
-          The Spearman ρ and Kendall τ next to it come with 90% paired-bootstrap CIs — the
+          The Spearman ρ and Kendall τ next to it come with 90% paired-bootstrap CIs. The
           framework <em>never</em> reports rank correlation as a point estimate.
         </p>
         {pairs.length === 0 ? (
           <Card>
-            <div className="muted text-sm mt-4">No judge pairs available — runs must include ≥ 2 judges.</div>
+            <div className="muted text-sm mt-4">No judge pairs available. Runs must include ≥ 2 judges.</div>
           </Card>
         ) : (
           <div className="grid lg:grid-cols-2 gap-6 mt-4">

@@ -18,7 +18,7 @@ const LAYERS = [
   },
   {
     title: "Conformal prediction",
-    body: "Split / adaptive (CQR) / Mondrian — finite-sample 1−α coverage guarantees.",
+    body: "Split, adaptive (CQR), and Mondrian. Finite-sample 1−α coverage guarantees.",
     method: "Vovk/Gammerman/Shafer 2005 · Romano/Patterson/Candès 2019",
     color: "#10b981",
   },

@@ -66,7 +66,7 @@ export default function CalibrationPage() {
               <span className="font-mono text-emerald-500 shrink-0">1</span>
               <span>
                 Take a held-out calibration set with known labels. For each (item, judge), compute
-                a <em>conformity score</em> — here, the absolute difference between the judge's
+                a <em>conformity score</em>. Here it's the absolute difference between the judge's
                 score and the ground-truth label.
               </span>
             </li>
@@ -108,7 +108,7 @@ export default function CalibrationPage() {
               <span>
                 <span className="font-medium">Real ground truth.</span> Each candidate solution is
                 executed in a sandboxed Python subprocess against the rewritten test block. Pass /
-                fail is mechanical — not another LLM's opinion.
+                fail is mechanical, not another LLM's opinion.
               </span>
             </li>
             <li className="flex gap-3">
@@ -136,17 +136,17 @@ export default function CalibrationPage() {
         <CardTitle>reliability diagram</CardTitle>
         <h2 className="mt-2 text-2xl font-medium tracking-tight">Empirical vs nominal, every α</h2>
         <p className="mt-3 max-w-3xl text-sm muted leading-relaxed">
-          Each dot is one (judge, α) measurement. The dashed diagonal is "perfect" calibration —
-          empirical equals nominal. The shaded green region above the diagonal is the safe-side
-          direction (over-covers, conservative). Conformal's theorem says points should fall in
-          the green region or on the line; the failure mode is points falling below the diagonal.
+          Each dot is one (judge, α) measurement. The dashed diagonal is "perfect" calibration,
+          where empirical equals nominal. The shaded green region above the diagonal is the
+          safe-side direction (over-covers, conservative). Conformal's theorem says points should
+          fall in the green region or on the line. The failure mode is points falling below.
         </p>
         <Card className="mt-4">
           <ReliabilityDiagram rows={calib.conformal_coverage} />
         </Card>
         <p className="mt-3 text-xs muted leading-relaxed max-w-3xl">
           Read this as: at the bottom-left (α = 0.4), the target is 60% coverage. At the top-right
-          (α = 0.05), the target is 95% coverage. The dots cluster on or above the line — exactly
+          (α = 0.05), the target is 95% coverage. The dots cluster on or above the line, exactly
           where the theorem says they should be.
         </p>
       </section>
@@ -157,8 +157,8 @@ export default function CalibrationPage() {
         <h2 className="mt-2 text-2xl font-medium tracking-tight">Per-judge × per-α</h2>
         <p className="mt-2 max-w-3xl text-sm muted leading-relaxed">
           Green = empirical is within 5pp of nominal. Amber = within 10pp. Red = more than 10pp
-          off. Over-covering counts as "fine" — the theorem is a lower bound, not equality. The
-          one row that matters most for the v1.0 spec target is Claude at α = 0.10.
+          off. Over-covering counts as fine. The theorem is a lower bound, not equality. The one
+          row that matters most for the v1.0 spec target is Claude at α = 0.10.
         </p>
         <div className="mt-4 surface rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
@@ -218,8 +218,8 @@ export default function CalibrationPage() {
           A second view: instead of fixing α at 0.10, what happens as we sweep α from 0.5 down to
           0.01? The dashed gray line is the nominal coverage target (1 − α); the green line is
           the empirical coverage on the same data. These curves come from the inter-judge spread
-          inside one production run — not from the held-out calibration probe — but they tell the
-          same story: empirical tracks or exceeds nominal across the range.
+          inside one production run, not from the held-out calibration probe. The story is the
+          same though. Empirical tracks or exceeds nominal across the range.
         </p>
         {featured && (
           <div className="text-xs muted mt-2">
@@ -262,8 +262,8 @@ export default function CalibrationPage() {
             </div>
           </div>
           <p className="mt-4 text-xs muted leading-relaxed">
-            Mid-temperature so candidates aren't all correct — we need a meaningful mix of
-            pass/fail to actually measure calibration. (94% pass rate is on the high side; with a
+            Mid-temperature so candidates aren't all correct. We need a meaningful mix of
+            pass/fail to actually measure calibration. (94% pass rate is on the high side. With a
             weaker generator the high-α coverage rows would land closer to nominal instead of
             over-covering.)
           </p>

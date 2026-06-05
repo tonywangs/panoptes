@@ -41,7 +41,7 @@ export function UncertaintyQuadrant() {
       epi: "high",
       icon: XCircle,
       color: "#f43f5e",
-      detail: "Judges disagree AND each is noisy with itself. The task itself may be ambiguous — surface, don't average.",
+      detail: "Judges disagree AND each is noisy with itself. The task itself may be ambiguous. Surface, don't average.",
       action: "skip / surface",
     },
   ];
