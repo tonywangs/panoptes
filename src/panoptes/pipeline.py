@@ -326,7 +326,17 @@ async def _point_pass(
         ):
             log.debug("Cache hit for %s / %s", item.item_id, ref.judge.judge_id)
             return None
-        return await ref.judge.evaluate(item, response_text)
+        try:
+            return await ref.judge.evaluate(item, response_text)
+        except Exception:
+            # One judge call shouldn't kill the run. Log and continue; the
+            # aggregator handles missing judges naturally.
+            log.exception(
+                "Judge %s failed on item %s during point pass; skipping this call.",
+                ref.judge.judge_id,
+                item.item_id,
+            )
+            return None
 
     results = await asyncio.gather(*[_one(ref) for ref in judges])
     return [r for r in results if r is not None]
@@ -345,15 +355,24 @@ async def _sampling_pass(
     draw and re-sampling on rerun is the correct behavior.
     """
 
-    async def _one(ref: JudgeRef, sample_idx: int) -> JudgeResponse:
-        return await ref.judge.evaluate(
-            item,
-            response_text,
-            sample_index=sample_idx + 1,  # reserve 0 for the point pass
-            temperature=config.temperature_sampling,
-        )
+    async def _one(ref: JudgeRef, sample_idx: int) -> JudgeResponse | None:
+        try:
+            return await ref.judge.evaluate(
+                item,
+                response_text,
+                sample_index=sample_idx + 1,  # reserve 0 for the point pass
+                temperature=config.temperature_sampling,
+            )
+        except Exception:
+            log.exception(
+                "Judge %s failed on item %s sample %d during sampling pass; skipping.",
+                ref.judge.judge_id,
+                item.item_id,
+                sample_idx,
+            )
+            return None
 
-    tasks: list[asyncio.Task[JudgeResponse]] = []
+    tasks: list[asyncio.Task[JudgeResponse | None]] = []
     judge_for_task: list[str] = []
     for ref in judges:
         for k in range(n_samples):
@@ -362,6 +381,8 @@ async def _sampling_pass(
     results = await asyncio.gather(*tasks)
     by_judge: dict[str, list[JudgeResponse]] = {}
     for judge_id, r in zip(judge_for_task, results, strict=True):
+        if r is None:
+            continue
         by_judge.setdefault(judge_id, []).append(r)
     return by_judge
 

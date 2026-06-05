@@ -1,0 +1,264 @@
+[
+  {
+    "run_id": "panoptes-d7da27b1",
+    "created_at_utc": "2026-05-11T16:52:17.002147",
+    "panoptes_version": "0.1.0a0",
+    "config": {
+      "alpha": 0.1,
+      "uq_methods": [
+        "split"
+      ],
+      "judges": [
+        "anthropic:claude-sonnet-4-6:rubric_code_v1"
+      ],
+      "n_items": 5,
+      "model_under_test": "reference_solution"
+    },
+    "strategy": "all",
+    "n_items": 5,
+    "n_calls": 5,
+    "n_judges": 1,
+    "judges": [
+      "anthropic:claude-sonnet-4-6:rubric_code_v1"
+    ],
+    "cost_usd": 0.0075,
+    "cost_by_judge": {
+      "anthropic:claude-sonnet-4-6:rubric_code_v1": 0.0075
+    },
+    "tokens": {
+      "input": 1000,
+      "output": 300,
+      "cache_read": 0,
+      "cache_creation": 0
+    },
+    "n_uq_results": 0,
+    "source_file": "m1_exit.duckdb"
+  },
+  {
+    "run_id": "panoptes-696da4d5",
+    "created_at_utc": "2026-06-04T16:31:35.649663",
+    "panoptes_version": "0.1.0a0",
+    "config": {
+      "alpha": 0.1,
+      "uq_methods": [
+        "split",
+        "self-consistency",
+        "semantic-entropy",
+        "decomposition"
+      ],
+      "judges": [
+        "anthropic:claude-haiku-4-5:rubric_code_v1",
+        "openai:gpt-4o-mini:rubric_code_v1",
+        "anthropic:claude-sonnet-4-6:rubric_code_v1"
+      ],
+      "n_items": 30,
+      "n_samples": 5,
+      "temperature_sampling": 1.0,
+      "strategy": "all",
+      "model_under_test": "reference_solution"
+    },
+    "strategy": "all",
+    "n_items": 22,
+    "n_calls": 396,
+    "n_judges": 3,
+    "judges": [
+      "anthropic:claude-haiku-4-5:rubric_code_v1",
+      "anthropic:claude-sonnet-4-6:rubric_code_v1",
+      "openai:gpt-4o-mini:rubric_code_v1"
+    ],
+    "cost_usd": 1.5570405,
+    "cost_by_judge": {
+      "anthropic:claude-haiku-4-5:rubric_code_v1": 0.3778529999999999,
+      "anthropic:claude-sonnet-4-6:rubric_code_v1": 1.1557950000000001,
+      "openai:gpt-4o-mini:rubric_code_v1": 0.023392499999999997
+    },
+    "tokens": {
+      "input": 375710,
+      "output": 64241,
+      "cache_read": 5120,
+      "cache_creation": 183740
+    },
+    "n_uq_results": 154,
+    "source_file": "demo_all.duckdb"
+  },
+  {
+    "run_id": "panoptes-49fdaed9",
+    "created_at_utc": "2026-06-04T17:42:29.526092",
+    "panoptes_version": "0.1.0a0",
+    "config": {
+      "alpha": 0.1,
+      "uq_methods": [
+        "split",
+        "self-consistency",
+        "semantic-entropy",
+        "decomposition"
+      ],
+      "judges": [
+        "anthropic:claude-haiku-4-5:rubric_code_v1",
+        "openai:gpt-4o-mini:rubric_code_v1",
+        "anthropic:claude-sonnet-4-6:rubric_code_v1"
+      ],
+      "n_items": 30,
+      "n_samples": 5,
+      "temperature_sampling": 1.0,
+      "strategy": "all",
+      "model_under_test": "reference_solution"
+    },
+    "strategy": "all",
+    "n_items": 8,
+    "n_calls": 143,
+    "n_judges": 3,
+    "judges": [
+      "anthropic:claude-haiku-4-5:rubric_code_v1",
+      "anthropic:claude-sonnet-4-6:rubric_code_v1",
+      "openai:gpt-4o-mini:rubric_code_v1"
+    ],
+    "cost_usd": 0.54886135,
+    "cost_by_judge": {
+      "anthropic:claude-haiku-4-5:rubric_code_v1": 0.128965,
+      "anthropic:claude-sonnet-4-6:rubric_code_v1": 0.41178375000000006,
+      "openai:gpt-4o-mini:rubric_code_v1": 0.008112599999999998
+    },
+    "tokens": {
+      "input": 127060,
+      "output": 23692,
+      "cache_read": 0,
+      "cache_creation": 62885
+    },
+    "n_uq_results": 56,
+    "source_file": "demo_all.duckdb"
+  },
+  {
+    "run_id": "panoptes-d636a93f",
+    "created_at_utc": "2026-06-04T17:54:12.413258",
+    "panoptes_version": "0.1.0a0",
+    "config": {
+      "alpha": 0.1,
+      "uq_methods": [
+        "split",
+        "self-consistency",
+        "semantic-entropy",
+        "decomposition"
+      ],
+      "judges": [
+        "anthropic:claude-haiku-4-5:rubric_code_v1",
+        "openai:gpt-4o-mini:rubric_code_v1",
+        "anthropic:claude-sonnet-4-6:rubric_code_v1",
+        "anthropic:claude-opus-4-7:rubric_code_v1"
+      ],
+      "n_items": 30,
+      "n_samples": 5,
+      "temperature_sampling": 1.0,
+      "strategy": "bandit",
+      "model_under_test": "reference_solution"
+    },
+    "strategy": "bandit",
+    "n_items": 30,
+    "n_calls": 300,
+    "n_judges": 3,
+    "judges": [
+      "anthropic:claude-haiku-4-5:rubric_code_v1",
+      "anthropic:claude-sonnet-4-6:rubric_code_v1",
+      "openai:gpt-4o-mini:rubric_code_v1"
+    ],
+    "cost_usd": 0.9503333999999998,
+    "cost_by_judge": {
+      "anthropic:claude-sonnet-4-6:rubric_code_v1": 0.7223099999999998,
+      "anthropic:claude-haiku-4-5:rubric_code_v1": 0.20301,
+      "openai:gpt-4o-mini:rubric_code_v1": 0.02501340000000002
+    },
+    "tokens": {
+      "input": 263406,
+      "output": 42495,
+      "cache_read": 4096,
+      "cache_creation": 114980
+    },
+    "n_uq_results": 120,
+    "source_file": "demo_bandit.duckdb"
+  },
+  {
+    "run_id": "panoptes-e86ef9e3",
+    "created_at_utc": "2026-06-04T18:12:07.589625",
+    "panoptes_version": "0.1.0a0",
+    "config": {
+      "alpha": 0.1,
+      "uq_methods": [
+        "split",
+        "adaptive",
+        "mondrian",
+        "semantic-entropy"
+      ],
+      "judges": [
+        "anthropic:claude-sonnet-4-6:rubric_code_v1",
+        "openai:gpt-4o:rubric_code_v1"
+      ],
+      "n_items": 50,
+      "n_samples": 10,
+      "temperature_sampling": 1.0,
+      "strategy": "all",
+      "model_under_test": "reference_solution"
+    },
+    "strategy": "all",
+    "n_items": 34,
+    "n_calls": 764,
+    "n_judges": 2,
+    "judges": [
+      "anthropic:claude-sonnet-4-6:rubric_code_v1",
+      "openai:gpt-4o:rubric_code_v1"
+    ],
+    "cost_usd": 4.7432544999999955,
+    "cost_by_judge": {
+      "anthropic:claude-sonnet-4-6:rubric_code_v1": 3.485201999999996,
+      "openai:gpt-4o:rubric_code_v1": 1.2580524999999996
+    },
+    "tokens": {
+      "input": 382893,
+      "output": 114623,
+      "cache_read": 29696,
+      "cache_creation": 589460
+    },
+    "n_uq_results": 69,
+    "source_file": "demo_calibration.duckdb"
+  },
+  {
+    "run_id": "panoptes-44c4e9b3",
+    "created_at_utc": "2026-06-04T18:45:08.142826",
+    "panoptes_version": "0.1.0a0",
+    "config": {
+      "alpha": 0.1,
+      "uq_methods": [
+        "split"
+      ],
+      "judges": [
+        "anthropic:claude-sonnet-4-6:rubric_code_v1",
+        "openai:gpt-4o:rubric_code_v1"
+      ],
+      "n_items": 50,
+      "n_samples": 0,
+      "temperature_sampling": 1.0,
+      "strategy": "all",
+      "model_under_test": "reference_solution"
+    },
+    "strategy": "all",
+    "n_items": 16,
+    "n_calls": 32,
+    "n_judges": 2,
+    "judges": [
+      "anthropic:claude-sonnet-4-6:rubric_code_v1",
+      "openai:gpt-4o:rubric_code_v1"
+    ],
+    "cost_usd": 0.195679,
+    "cost_by_judge": {
+      "anthropic:claude-sonnet-4-6:rubric_code_v1": 0.1405815,
+      "openai:gpt-4o:rubric_code_v1": 0.05509750000000001
+    },
+    "tokens": {
+      "input": 41307,
+      "output": 5468,
+      "cache_read": 0,
+      "cache_creation": 1586
+    },
+    "n_uq_results": 0,
+    "source_file": "demo_calibration.duckdb"
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "n_runs": 6,
+  "n_items_total": 115,
+  "n_calls_total": 1640,
+  "cost_total_usd": 8.002668749999994,
+  "judges_seen": [
+    "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "openai:gpt-4o-mini:rubric_code_v1",
+    "openai:gpt-4o:rubric_code_v1"
+  ],
+  "calibration_headline": {
+    "judge": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "alpha": 0.1,
+    "nominal": 0.9,
+    "empirical": 0.92,
+    "gap_pp": 2.0,
+    "summary": "Split conformal achieved 92% empirical coverage at the nominal 90% target on the held-out test split of the obfuscated-HumanEval calibration probe. The 2pp gap meets the v1.0 spec target."
+  }
+}

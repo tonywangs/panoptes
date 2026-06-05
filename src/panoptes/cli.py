@@ -24,6 +24,7 @@ from rich.logging import RichHandler
 from rich.table import Table
 
 from panoptes._version import __version__
+from panoptes.benchmarks.calibration_probe import obfuscate_humaneval
 from panoptes.benchmarks.humaneval import load_humaneval
 from panoptes.clients._mock import MockClient
 from panoptes.clients.anthropic import AnthropicClient
@@ -421,8 +422,17 @@ def _project_root() -> Path:
 def _load_benchmark(name: str, *, n: int, cache_dir: Path) -> list[BenchmarkItem]:
     if name == "humaneval":
         return load_humaneval(cache_dir=cache_dir, limit=n)
+    if name == "calibration_probe":
+        # Build obfuscated-HumanEval items so judges can't pattern-match the
+        # solutions they've seen in pretraining; the obfuscator produces
+        # `BenchmarkItem`s with the rewritten test in `metadata['test']`.
+        # We pull from a larger pool of vanilla HumanEval since obfuscation
+        # may skip items missing required metadata fields.
+        base = load_humaneval(cache_dir=cache_dir, limit=None)
+        probed = [p.item for p in obfuscate_humaneval(base)]
+        return probed[:n]
     raise typer.BadParameter(
-        f"Unknown benchmark '{name}'. CLI currently loads: humaneval."
+        f"Unknown benchmark '{name}'. CLI currently loads: humaneval, calibration_probe."
     )
 
 
@@ -434,8 +444,7 @@ def _build_responses(benchmark: str, items: list[BenchmarkItem]) -> dict[str, st
     follow-up). For real grading runs, generate responses ahead of time and
     feed them through `run_evaluation` directly.
     """
-    if benchmark != "humaneval":
-        return {}
+    del benchmark
     responses: dict[str, str] = {}
     for item in items:
         canonical = item.metadata.get("canonical_solution")

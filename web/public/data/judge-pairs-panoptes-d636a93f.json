@@ -1,0 +1,144 @@
+[
+  {
+    "judge_a": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "judge_b": "openai:gpt-4o-mini:rubric_code_v1",
+    "n_items": 11,
+    "spearman": {
+      "point": 0.12360330811826106,
+      "ci_low": null,
+      "ci_high": null
+    },
+    "kendall": {
+      "point": 0.12009611535381537,
+      "ci_low": null,
+      "ci_high": null
+    },
+    "permutation": {
+      "observed": 0.12727272727272726,
+      "p_value": 1.0
+    },
+    "pairs": [
+      {
+        "item_id": "HumanEval/12",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/14",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/15",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/16",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/17",
+        "a": 1.0,
+        "b": 0.8
+      },
+      {
+        "item_id": "HumanEval/22",
+        "a": 0.8,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/23",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/25",
+        "a": 0.5,
+        "b": 0.8
+      },
+      {
+        "item_id": "HumanEval/26",
+        "a": 1.0,
+        "b": 0.8
+      },
+      {
+        "item_id": "HumanEval/28",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/4",
+        "a": 0.5,
+        "b": 1.0
+      }
+    ]
+  },
+  {
+    "judge_a": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "judge_b": "openai:gpt-4o-mini:rubric_code_v1",
+    "n_items": 9,
+    "spearman": {
+      "point": -0.1875,
+      "ci_low": null,
+      "ci_high": null
+    },
+    "kendall": {
+      "point": -0.18257418583505533,
+      "ci_low": null,
+      "ci_high": null
+    },
+    "permutation": {
+      "observed": 0.049999999999999996,
+      "p_value": 1.0
+    },
+    "pairs": [
+      {
+        "item_id": "HumanEval/10",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/11",
+        "a": 0.8,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/13",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/18",
+        "a": 0.95,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/27",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/29",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/7",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "HumanEval/8",
+        "a": 1.0,
+        "b": 0.8
+      },
+      {
+        "item_id": "HumanEval/9",
+        "a": 1.0,
+        "b": 1.0
+      }
+    ]
+  }
+]

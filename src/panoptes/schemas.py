@@ -15,9 +15,16 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, NonNegativeFloat, NonNegativeInt
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    NonNegativeFloat,
+    NonNegativeInt,
+    field_validator,
+)
 
 
 def _now_utc() -> datetime:
@@ -93,6 +100,18 @@ class RubricScore(BaseModel):
         default_factory=list[str],
         description="Optional concerns the judge surfaced (e.g. 'off_topic', 'ambiguous_prompt').",
     )
+
+    @field_validator("scale", mode="before")
+    @classmethod
+    def _normalize_scale(cls, v: Any) -> Any:
+        """LLMs frequently emit the enum *name* (`'LIKERT_1_5'`) rather than the
+        *value* (`'likert_1_5'`) even when the JSON Schema enum lists the
+        lowercase value. Lowercase any string input before enum coercion so
+        we don't lose an entire run to a casing quirk in one judge call.
+        """
+        if isinstance(v, str):
+            return v.lower()
+        return v
 
 
 class TokenUsage(BaseModel):

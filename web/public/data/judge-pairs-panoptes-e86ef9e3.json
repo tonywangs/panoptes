@@ -1,0 +1,193 @@
+[
+  {
+    "judge_a": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "judge_b": "openai:gpt-4o:rubric_code_v1",
+    "n_items": 34,
+    "spearman": {
+      "point": 0.5033907715684627,
+      "ci_low": 0.22637357706792238,
+      "ci_high": 0.7141704757787481
+    },
+    "kendall": {
+      "point": 0.47463990741887374,
+      "ci_low": null,
+      "ci_high": null
+    },
+    "permutation": {
+      "observed": 0.055882352941176466,
+      "p_value": 1.0
+    },
+    "pairs": [
+      {
+        "item_id": "calib::HumanEval/0",
+        "a": 0.95,
+        "b": 0.8
+      },
+      {
+        "item_id": "calib::HumanEval/1",
+        "a": 1.0,
+        "b": 0.8
+      },
+      {
+        "item_id": "calib::HumanEval/10",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/11",
+        "a": 0.8,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/12",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/13",
+        "a": 0.95,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/14",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/15",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/16",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/17",
+        "a": 0.95,
+        "b": 0.8
+      },
+      {
+        "item_id": "calib::HumanEval/18",
+        "a": 0.95,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/19",
+        "a": 0.95,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/2",
+        "a": 0.95,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/20",
+        "a": 0.95,
+        "b": 0.5
+      },
+      {
+        "item_id": "calib::HumanEval/21",
+        "a": 0.95,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/22",
+        "a": 0.95,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/23",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/24",
+        "a": 0.8,
+        "b": 0.8
+      },
+      {
+        "item_id": "calib::HumanEval/25",
+        "a": 0.95,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/26",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/27",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/28",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/29",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/3",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/30",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/31",
+        "a": 0.8,
+        "b": 0.5
+      },
+      {
+        "item_id": "calib::HumanEval/32",
+        "a": 0.85,
+        "b": 0.8
+      },
+      {
+        "item_id": "calib::HumanEval/33",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/4",
+        "a": 0.95,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/5",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/6",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/7",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/8",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/9",
+        "a": 1.0,
+        "b": 1.0
+      }
+    ]
+  }
+]

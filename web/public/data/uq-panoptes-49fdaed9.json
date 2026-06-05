@@ -1,0 +1,858 @@
+[
+  {
+    "item_id": "HumanEval/22",
+    "judge_id": "__aggregate__",
+    "method": "decomposition",
+    "value": {
+      "total": 0.02355000000000001,
+      "aleatoric": 0.01025,
+      "epistemic": 0.01330000000000001,
+      "aleatoric_ci": [
+        0.0,
+        0.02317083333333333
+      ],
+      "epistemic_ci": [
+        1.8488927466117464e-32,
+        0.03058833333333328
+      ],
+      "n_judges": 3,
+      "n_samples_per_judge": [
+        5,
+        5,
+        5
+      ]
+    }
+  },
+  {
+    "item_id": "HumanEval/22",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 0.7799999999999999,
+      "variance": 0.03075,
+      "iqr": 0.15000000000000002,
+      "ci_low": 0.660549088739523,
+      "ci_high": 0.86996573078118,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/22",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999998,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/22",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 0.95,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9499999999999998,
+      "ci_high": 0.9500000000000001,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/22",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": 0.6730116670092565,
+      "n_clusters": 2,
+      "cluster_sizes": [
+        3,
+        2
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/22",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/22",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": 0.6730116670092565,
+      "n_clusters": 2,
+      "cluster_sizes": [
+        2,
+        3
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/23",
+    "judge_id": "__aggregate__",
+    "method": "decomposition",
+    "value": {
+      "total": 0.0,
+      "aleatoric": 0.0,
+      "epistemic": 0.0,
+      "aleatoric_ci": [
+        0.0,
+        0.0
+      ],
+      "epistemic_ci": [
+        0.0,
+        0.0
+      ],
+      "n_judges": 3,
+      "n_samples_per_judge": [
+        5,
+        5,
+        5
+      ]
+    }
+  },
+  {
+    "item_id": "HumanEval/23",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999998,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/23",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999998,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/23",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999999,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/23",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/23",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/23",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/24",
+    "judge_id": "__aggregate__",
+    "method": "decomposition",
+    "value": {
+      "total": 0.059400000000000015,
+      "aleatoric": 0.015000000000000006,
+      "epistemic": 0.04440000000000001,
+      "aleatoric_ci": [
+        0.0,
+        0.024000000000000007
+      ],
+      "epistemic_ci": [
+        1.5407439555097887e-33,
+        0.0876
+      ],
+      "n_judges": 3,
+      "n_samples_per_judge": [
+        5,
+        5,
+        5
+      ]
+    }
+  },
+  {
+    "item_id": "HumanEval/24",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 0.26,
+      "variance": 0.018000000000000002,
+      "iqr": 0.0,
+      "ci_low": 0.20382557840348095,
+      "ci_high": 0.3644193517219105,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/24",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 0.68,
+      "variance": 0.02700000000000001,
+      "iqr": 0.30000000000000004,
+      "ci_low": 0.5732672881492383,
+      "ci_high": 0.7687950590066955,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/24",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 0.5,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.49999999999999994,
+      "ci_high": 0.5000000000000001,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/24",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": 1.3321790402101223,
+      "n_clusters": 4,
+      "cluster_sizes": [
+        1,
+        2,
+        1,
+        1
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/24",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": 0.9502705392332347,
+      "n_clusters": 3,
+      "cluster_sizes": [
+        3,
+        1,
+        1
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/24",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": 0.5004024235381879,
+      "n_clusters": 2,
+      "cluster_sizes": [
+        4,
+        1
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/25",
+    "judge_id": "__aggregate__",
+    "method": "decomposition",
+    "value": {
+      "total": 0.053333904761904756,
+      "aleatoric": 2.857142857142862e-05,
+      "epistemic": 0.05330533333333333,
+      "aleatoric_ci": [
+        0.0,
+        6.666666666666679e-05
+      ],
+      "epistemic_ci": [
+        1.8488927466117464e-32,
+        0.069316
+      ],
+      "n_judges": 3,
+      "n_samples_per_judge": [
+        4,
+        5,
+        5
+      ]
+    }
+  },
+  {
+    "item_id": "HumanEval/25",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 0.5,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.49999999999999994,
+      "ci_high": 0.5000000000000001,
+      "alpha": 0.1,
+      "n_samples": 4
+    }
+  },
+  {
+    "item_id": "HumanEval/25",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 0.8,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.7999999999999999,
+      "ci_high": 0.8000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/25",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 0.954,
+      "variance": 8.000000000000014e-05,
+      "iqr": 0.0,
+      "ci_low": 0.9502695190170849,
+      "ci_high": 0.960566026539005,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/25",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": 1.0397207708399179,
+      "n_clusters": 3,
+      "cluster_sizes": [
+        1,
+        1,
+        2
+      ],
+      "n_samples": 4
+    }
+  },
+  {
+    "item_id": "HumanEval/25",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": 1.3321790402101223,
+      "n_clusters": 4,
+      "cluster_sizes": [
+        1,
+        1,
+        2,
+        1
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/25",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/26",
+    "judge_id": "__aggregate__",
+    "method": "decomposition",
+    "value": {
+      "total": 0.011199999999999991,
+      "aleatoric": 0.0026666666666666653,
+      "epistemic": 0.008533333333333325,
+      "aleatoric_ci": [
+        0.0,
+        0.006666666666666664
+      ],
+      "epistemic_ci": [
+        0.0,
+        0.013333333333333329
+      ],
+      "n_judges": 3,
+      "n_samples_per_judge": [
+        5,
+        5,
+        5
+      ]
+    }
+  },
+  {
+    "item_id": "HumanEval/26",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999999,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/26",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 0.8400000000000001,
+      "variance": 0.007999999999999997,
+      "iqr": 0.0,
+      "ci_low": 0.8029929360768332,
+      "ci_high": 0.9038609781180372,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/26",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999998,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/26",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/26",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": 1.3321790402101223,
+      "n_clusters": 4,
+      "cluster_sizes": [
+        1,
+        1,
+        1,
+        2
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/26",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/27",
+    "judge_id": "__aggregate__",
+    "method": "decomposition",
+    "value": {
+      "total": 0.0,
+      "aleatoric": 0.0,
+      "epistemic": 0.0,
+      "aleatoric_ci": [
+        0.0,
+        0.0
+      ],
+      "epistemic_ci": [
+        0.0,
+        0.0
+      ],
+      "n_judges": 3,
+      "n_samples_per_judge": [
+        5,
+        5,
+        5
+      ]
+    }
+  },
+  {
+    "item_id": "HumanEval/27",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999998,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/27",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999999,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/27",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999998,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/27",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/27",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/27",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/28",
+    "judge_id": "__aggregate__",
+    "method": "decomposition",
+    "value": {
+      "total": 0.0,
+      "aleatoric": 0.0,
+      "epistemic": 0.0,
+      "aleatoric_ci": [
+        0.0,
+        0.0
+      ],
+      "epistemic_ci": [
+        0.0,
+        0.0
+      ],
+      "n_judges": 3,
+      "n_samples_per_judge": [
+        5,
+        5,
+        5
+      ]
+    }
+  },
+  {
+    "item_id": "HumanEval/28",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999999,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/28",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999998,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/28",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999998,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/28",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/28",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/28",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/29",
+    "judge_id": "__aggregate__",
+    "method": "decomposition",
+    "value": {
+      "total": 0.0,
+      "aleatoric": 0.0,
+      "epistemic": 0.0,
+      "aleatoric_ci": [
+        0.0,
+        0.0
+      ],
+      "epistemic_ci": [
+        0.0,
+        0.0
+      ],
+      "n_judges": 3,
+      "n_samples_per_judge": [
+        5,
+        5,
+        5
+      ]
+    }
+  },
+  {
+    "item_id": "HumanEval/29",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999999,
+      "ci_high": 1.0,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/29",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999998,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/29",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "self-consistency",
+    "value": {
+      "mean": 1.0,
+      "variance": 0.0,
+      "iqr": 0.0,
+      "ci_low": 0.9999999999999999,
+      "ci_high": 1.0000000000000002,
+      "alpha": 0.1,
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/29",
+    "judge_id": "anthropic:claude-haiku-4-5:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/29",
+    "judge_id": "openai:gpt-4o-mini:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  },
+  {
+    "item_id": "HumanEval/29",
+    "judge_id": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "method": "semantic-entropy",
+    "value": {
+      "entropy": -0.0,
+      "n_clusters": 1,
+      "cluster_sizes": [
+        5
+      ],
+      "n_samples": 5
+    }
+  }
+]

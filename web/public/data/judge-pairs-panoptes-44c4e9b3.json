@@ -1,0 +1,103 @@
+[
+  {
+    "judge_a": "anthropic:claude-sonnet-4-6:rubric_code_v1",
+    "judge_b": "openai:gpt-4o:rubric_code_v1",
+    "n_items": 16,
+    "spearman": {
+      "point": 0.1499765679917339,
+      "ci_low": -0.31631242811290206,
+      "ci_high": 0.581954378918167
+    },
+    "kendall": {
+      "point": 0.1413162840136046,
+      "ci_low": -0.2690776414986457,
+      "ci_high": 0.5434272395359034
+    },
+    "permutation": {
+      "observed": 0.11875,
+      "p_value": 1.0
+    },
+    "pairs": [
+      {
+        "item_id": "calib::HumanEval/34",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/35",
+        "a": 0.8,
+        "b": 0.5
+      },
+      {
+        "item_id": "calib::HumanEval/36",
+        "a": 0.95,
+        "b": 0.8
+      },
+      {
+        "item_id": "calib::HumanEval/37",
+        "a": 1.0,
+        "b": 0.8
+      },
+      {
+        "item_id": "calib::HumanEval/38",
+        "a": 1.0,
+        "b": 0.5
+      },
+      {
+        "item_id": "calib::HumanEval/39",
+        "a": 0.85,
+        "b": 0.8
+      },
+      {
+        "item_id": "calib::HumanEval/40",
+        "a": 0.8,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/41",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/42",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/43",
+        "a": 0.95,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/44",
+        "a": 0.8,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/45",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/46",
+        "a": 0.95,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/47",
+        "a": 1.0,
+        "b": 1.0
+      },
+      {
+        "item_id": "calib::HumanEval/48",
+        "a": 1.0,
+        "b": 0.8
+      },
+      {
+        "item_id": "calib::HumanEval/49",
+        "a": 0.8,
+        "b": 0.8
+      }
+    ]
+  }
+]
