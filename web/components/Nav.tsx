@@ -1,5 +1,14 @@
 import Link from "next/link";
-import { Activity, BarChart3, BookOpen, FileText, Layers, ScatterChart, Sigma } from "lucide-react";
+import {
+  Activity,
+  BarChart3,
+  BookOpen,
+  FileText,
+  Flag,
+  Layers,
+  ScatterChart,
+  Sigma,
+} from "lucide-react";
 
 const ITEMS = [
   { href: "/", label: "Overview", icon: Activity },
@@ -8,6 +17,7 @@ const ITEMS = [
   { href: "/judges", label: "Judges", icon: ScatterChart },
   { href: "/calibration", label: "Calibration", icon: BarChart3 },
   { href: "/methods", label: "Methods", icon: FileText },
+  { href: "/summary", label: "Summary", icon: Flag },
 ];
 
 export function Sidebar() {
