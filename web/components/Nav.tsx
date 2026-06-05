@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Activity, BarChart3, FileText, Layers, ScatterChart, Sigma } from "lucide-react";
+import { Activity, BarChart3, BookOpen, FileText, Layers, ScatterChart, Sigma } from "lucide-react";
 
 const ITEMS = [
   { href: "/", label: "Overview", icon: Activity },
+  { href: "/background", label: "Background", icon: BookOpen },
   { href: "/runs", label: "Runs", icon: Layers },
   { href: "/judges", label: "Judges", icon: ScatterChart },
   { href: "/calibration", label: "Calibration", icon: BarChart3 },
