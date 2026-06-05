@@ -131,11 +131,16 @@ export function CountUp({
   className?: string;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-30%" });
-  const [display, setDisplay] = useState(formatValue(0, format));
+  // Trigger as soon as any part of the element is in the viewport. The
+  // previous `margin: "-30%"` was too aggressive — above-the-fold metrics
+  // never satisfied it, so they stayed at 0 forever.
+  const inView = useInView(ref, { once: true, amount: 0 });
+  const [display, setDisplay] = useState(formatValue(to, format));
+  const animated = useRef(false);
 
   useEffect(() => {
-    if (!inView) return;
+    if (!inView || animated.current) return;
+    animated.current = true;
     const start = performance.now();
     let raf = 0;
     const tick = (now: number) => {
@@ -143,7 +148,10 @@ export function CountUp({
       const eased = 1 - Math.pow(1 - t, 3);
       setDisplay(formatValue(to * eased, format));
       if (t < 1) raf = requestAnimationFrame(tick);
+      else setDisplay(formatValue(to, format));
     };
+    // Start the count from 0 on the first frame, then ramp up.
+    setDisplay(formatValue(0, format));
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [inView, to, duration, format]);
