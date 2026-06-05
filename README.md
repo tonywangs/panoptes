@@ -12,7 +12,7 @@
 [![python](https://img.shields.io/badge/python-3.12%2B-blue?style=flat-square&logo=python&logoColor=white)](https://www.python.org) &nbsp;
 [![license](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](#-license)
 
-🎥 **[Watch the 5-minute demo](https://youtu.be/f2om-0ZsAv8)** &nbsp;|&nbsp; 🌐 **[Live interactive dashboard](https://panoptes-eval.vercel.app)** &nbsp;|&nbsp; 📊 **[Calibration receipts](https://panoptes-eval.vercel.app/calibration)**
+🎥 **[Watch the 10-minute demo](https://youtu.be/f2om-0ZsAv8)** &nbsp;|&nbsp; 🌐 **[Live interactive dashboard](https://panoptes-eval.vercel.app)** &nbsp;|&nbsp; 📊 **[Calibration receipts](https://panoptes-eval.vercel.app/calibration)**
 
 </div>
 
