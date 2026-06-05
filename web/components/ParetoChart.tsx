@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { TOOLTIP_CONTENT_STYLE, TOOLTIP_ITEM_STYLE, TOOLTIP_LABEL_STYLE } from "@/lib/chart";
 
 type Point = { alpha: number; target_coverage: number; mean_width: number; empirical_coverage: number | null };
 
@@ -31,12 +32,9 @@ export function ParetoChart({ data }: { data: Point[] }) {
             label={{ value: "coverage", angle: -90, position: "insideLeft", fill: "var(--foreground-muted)", fontSize: 11, offset: 18 }}
           />
           <Tooltip
-            contentStyle={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
+            contentStyle={TOOLTIP_CONTENT_STYLE}
+            itemStyle={TOOLTIP_ITEM_STYLE}
+            labelStyle={TOOLTIP_LABEL_STYLE}
             formatter={(v: number) => (typeof v === "number" ? v.toFixed(3) : v)}
           />
           <ReferenceLine y={1} stroke="var(--border)" strokeDasharray="2 2" />

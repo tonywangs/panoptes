@@ -11,6 +11,7 @@ import {
   YAxis,
   ZAxis,
 } from "recharts";
+import { TOOLTIP_CONTENT_STYLE, TOOLTIP_ITEM_STYLE, TOOLTIP_LABEL_STYLE } from "@/lib/chart";
 
 type Row = {
   run_id: string;
@@ -70,12 +71,9 @@ export function StrategyTradeoff({ rows }: { rows: Row[] }) {
           </YAxis>
           <ZAxis dataKey="n_items" range={[80, 280]} />
           <Tooltip
-            contentStyle={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
+            contentStyle={TOOLTIP_CONTENT_STYLE}
+            itemStyle={TOOLTIP_ITEM_STYLE}
+            labelStyle={TOOLTIP_LABEL_STYLE}
             formatter={(v: number | string, name: string) => {
               if (name === "cost_per_item" && typeof v === "number") return [`$${v.toFixed(4)}`, "cost/item"];
               if (name === "n_judges") return [v, "judges"];

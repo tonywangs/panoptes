@@ -2,6 +2,7 @@
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { formatUSD, judgeChartColor, shortJudge } from "@/lib/format";
+import { TOOLTIP_CONTENT_STYLE, TOOLTIP_ITEM_STYLE, TOOLTIP_LABEL_STYLE } from "@/lib/chart";
 
 export function CostDonut({ data }: { data: Record<string, number> }) {
   const rows = Object.entries(data).map(([judge, cost]) => ({
@@ -30,12 +31,9 @@ export function CostDonut({ data }: { data: Record<string, number> }) {
             ))}
           </Pie>
           <Tooltip
-            contentStyle={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
+            contentStyle={TOOLTIP_CONTENT_STYLE}
+            itemStyle={TOOLTIP_ITEM_STYLE}
+            labelStyle={TOOLTIP_LABEL_STYLE}
             formatter={(value: number) => formatUSD(value)}
           />
         </PieChart>

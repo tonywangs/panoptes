@@ -14,6 +14,7 @@ import {
   ZAxis,
 } from "recharts";
 import { judgeChartColor, shortJudge } from "@/lib/format";
+import { TOOLTIP_CONTENT_STYLE, TOOLTIP_ITEM_STYLE, TOOLTIP_LABEL_STYLE } from "@/lib/chart";
 
 type Point = { judge: string; score: number; sample: number; isPoint: boolean };
 
@@ -82,12 +83,9 @@ export function JudgeNoiseChart({
           <ZAxis range={[50, 50]} />
           <Tooltip
             cursor={false}
-            contentStyle={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
+            contentStyle={TOOLTIP_CONTENT_STYLE}
+            itemStyle={TOOLTIP_ITEM_STYLE}
+            labelStyle={TOOLTIP_LABEL_STYLE}
             formatter={(v: number, name: string) =>
               name === "score" ? [v.toFixed(3), "score"] : [v, name]
             }

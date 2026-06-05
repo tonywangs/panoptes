@@ -13,6 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { judgeChartColor, shortJudge } from "@/lib/format";
+import { TOOLTIP_CONTENT_STYLE, TOOLTIP_ITEM_STYLE, TOOLTIP_LABEL_STYLE } from "@/lib/chart";
 
 type Row = {
   judge: string;
@@ -69,12 +70,9 @@ export function ReliabilityDiagram({ rows }: { rows: Row[] }) {
             }}
           />
           <Tooltip
-            contentStyle={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              fontSize: 12,
-            }}
+            contentStyle={TOOLTIP_CONTENT_STYLE}
+            itemStyle={TOOLTIP_ITEM_STYLE}
+            labelStyle={TOOLTIP_LABEL_STYLE}
             formatter={(v: number, name: string) =>
               typeof v === "number" ? [v.toFixed(3), name] : [v, name]
             }
